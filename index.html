@@ -8,10 +8,16 @@
   <!--
     =========================================================
     CellStock Manager
-    Version: 1.0.1
+    Version: 1.0.2
     =========================================================
 
     CHANGELOG:
+    - V1.0.2
+      * Added temporary on-screen debug log panel for Firebase/Auth errors
+      * Fixed Google mobile login to use Redirect instead of Popup
+      * Added detailed Google/Firebase error codes and messages on screen
+      * Added automatic redirect result handling after returning from Google
+
     - V1.0.1
       * Fixed Google Login on mobile browsers by switching from Popup login to Redirect login
       * Added redirect result handling foundation
@@ -123,6 +129,85 @@
     .dashboard-card h3 { margin-bottom: 12px; font-size: 18px; }
     .dashboard-card p { color: var(--muted); line-height: 1.6; }
     .badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 999px; font-size: 12px; background: rgba(59,130,246,0.15); color: #bfdbfe; margin-top: 12px; }
+
+    /* V1.0.2 Temporary debug panel - visible only while testing */
+    .debug-toggle {
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      z-index: 10000;
+      width: auto;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(15,23,42,0.92);
+      color: #e5e7eb;
+      font-weight: bold;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+    }
+
+    .debug-panel {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 66px;
+      max-height: 42vh;
+      z-index: 9999;
+      background: rgba(2,6,23,0.96);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+      overflow: hidden;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .debug-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      color: #f8fafc;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .debug-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .debug-actions button {
+      border: 0;
+      border-radius: 10px;
+      padding: 6px 9px;
+      background: rgba(255,255,255,0.1);
+      color: #e5e7eb;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .debug-body {
+      padding: 10px 12px;
+      overflow-y: auto;
+      max-height: calc(42vh - 45px);
+      font-size: 12px;
+      line-height: 1.5;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .debug-line {
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 7px 0;
+    }
+
+    .debug-line.error { color: #fecaca; }
+    .debug-line.warn { color: #fde68a; }
+    .debug-line.info { color: #bfdbfe; }
+
   </style>
 </head>
 <body>
@@ -181,13 +266,28 @@
     </div>
   </section>
 
+
+  <!-- V1.0.2 Temporary debug tools: remove in a later production version -->
+  <button id="debugToggle" class="debug-toggle" type="button">לוג שגיאות</button>
+  <div id="debugPanel" class="debug-panel hidden">
+    <div class="debug-header">
+      <span>CellStock Debug Log</span>
+      <div class="debug-actions">
+        <button id="copyDebugBtn" type="button">Copy</button>
+        <button id="clearDebugBtn" type="button">Clear</button>
+        <button id="closeDebugBtn" type="button">Close</button>
+      </div>
+    </div>
+    <div id="debugBody" class="debug-body"></div>
+  </div>
+
   <script type="module">
     const APP_NAME = 'CellStock Manager';
-    const APP_VERSION = '1.0.1';
+    const APP_VERSION = '1.0.2';
     document.getElementById('versionText').textContent = APP_VERSION;
 
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js';
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js';
     import { getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, query, where, getDocs, limit } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js';
 
     const firebaseConfig = {
@@ -204,6 +304,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
 
     const loaderScreen = document.getElementById('loaderScreen');
     const loginPage = document.getElementById('loginPage');
@@ -222,6 +323,70 @@
     const setupMessage = document.getElementById('setupMessage');
     const logoutBtn = document.getElementById('logoutBtn');
     const userInfoText = document.getElementById('userInfoText');
+    const debugToggle = document.getElementById('debugToggle');
+    const debugPanel = document.getElementById('debugPanel');
+    const debugBody = document.getElementById('debugBody');
+    const copyDebugBtn = document.getElementById('copyDebugBtn');
+    const clearDebugBtn = document.getElementById('clearDebugBtn');
+    const closeDebugBtn = document.getElementById('closeDebugBtn');
+
+    /* V1.0.2 Debug logger - keeps error visibility on mobile without DevTools */
+    const debugLines = [];
+
+    function formatError(error) {
+      if (!error) return 'Unknown error';
+      return [
+        error.code ? `code: ${error.code}` : '',
+        error.message ? `message: ${error.message}` : '',
+        error.name ? `name: ${error.name}` : '',
+        error.customData ? `customData: ${JSON.stringify(error.customData)}` : ''
+      ].filter(Boolean).join('\n');
+    }
+
+    function addDebugLog(level, title, data = '') {
+      const now = new Date().toLocaleString('he-IL');
+      const text = `[${now}] ${level.toUpperCase()} - ${title}${data ? '\n' + data : ''}`;
+      debugLines.push({ level, text });
+      renderDebugLog();
+    }
+
+    function renderDebugLog() {
+      debugBody.innerHTML = debugLines.map(line => {
+        const safeText = line.text
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+        return `<div class="debug-line ${line.level}">${safeText}</div>`;
+      }).join('');
+      debugBody.scrollTop = debugBody.scrollHeight;
+    }
+
+    function openDebugPanel() {
+      debugPanel.classList.remove('hidden');
+    }
+
+    debugToggle.addEventListener('click', () => debugPanel.classList.toggle('hidden'));
+    closeDebugBtn.addEventListener('click', () => debugPanel.classList.add('hidden'));
+    clearDebugBtn.addEventListener('click', () => { debugLines.length = 0; renderDebugLog(); });
+    copyDebugBtn.addEventListener('click', async () => {
+      const text = debugLines.map(line => line.text).join('\n\n');
+      try {
+        await navigator.clipboard.writeText(text || 'No debug logs');
+        addDebugLog('info', 'Debug log copied');
+      } catch (error) {
+        addDebugLog('error', 'Copy debug log failed', formatError(error));
+      }
+    });
+
+    window.addEventListener('error', (event) => {
+      addDebugLog('error', 'Window error', `${event.message}\n${event.filename}:${event.lineno}:${event.colno}`);
+      openDebugPanel();
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      addDebugLog('error', 'Unhandled promise rejection', formatError(event.reason));
+      openDebugPanel();
+    });
 
     function showMessage(el, message, type = 'error') { el.textContent = message; el.className = `message ${type}`; el.style.display = 'block'; }
     function hideMessage(el) { el.style.display = 'none'; }
@@ -242,6 +407,40 @@
       loaderScreen.style.opacity = '0';
       setTimeout(() => { loaderScreen.classList.add('hidden'); showPage(loginPage); }, 350);
     }, 1600);
+
+
+    // V1.0.2: Handle result after returning from Google Redirect login.
+    async function handleGoogleRedirectResult() {
+      try {
+        addDebugLog('info', 'Checking Google redirect result', `domain: ${location.hostname}\nurl: ${location.href}`);
+        const result = await getRedirectResult(auth);
+        if (!result) {
+          addDebugLog('info', 'No Google redirect result found');
+          return;
+        }
+
+        const user = result.user;
+        addDebugLog('info', 'Google redirect returned user', `uid: ${user.uid}\nemail: ${user.email}`);
+
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+          await signOut(auth);
+          showMessage(loginMessage, 'המשתמש התחבר עם Google אבל עדיין לא מאושר במערכת. צריך להוסיף אותו באדמין.');
+          addDebugLog('warn', 'Google user is not approved in Firestore users collection', `uid: ${user.uid}\nemail: ${user.email}`);
+          openDebugPanel();
+          return;
+        }
+      } catch (error) {
+        console.error(error);
+        showMessage(loginMessage, `Google נכשל: ${error.code || 'unknown'}`);
+        addDebugLog('error', 'Google redirect login failed', formatError(error));
+        openDebugPanel();
+      }
+    }
+
+    handleGoogleRedirectResult();
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return;
@@ -271,24 +470,22 @@
         await signInWithEmailAndPassword(auth, email, password);
       } catch (error) {
         console.error(error);
-        showMessage(loginMessage, 'שם משתמש או סיסמה שגויים');
+        showMessage(loginMessage, `שם משתמש או סיסמה שגויים: ${error.code || 'unknown'}`);
+        addDebugLog('error', 'Email/password login failed', formatError(error));
+        openDebugPanel();
       }
     });
 
     googleLoginBtn.addEventListener('click', async () => {
+      hideMessage(loginMessage);
       try {
-        const result = await signInWithPopup(auth, googleProvider);
-        const user = result.user;
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        if (!userSnap.exists()) {
-          await signOut(auth);
-          showMessage(loginMessage, 'המשתמש לא מאושר במערכת');
-          return;
-        }
+        addDebugLog('info', 'Starting Google redirect login', `domain: ${location.hostname}\nauthDomain: ${firebaseConfig.authDomain}`);
+        await signInWithRedirect(auth, googleProvider);
       } catch (error) {
         console.error(error);
-        showMessage(loginMessage, 'התחברות Google נכשלה');
+        showMessage(loginMessage, `Google נכשל: ${error.code || 'unknown'}`);
+        addDebugLog('error', 'Google redirect start failed', formatError(error));
+        openDebugPanel();
       }
     });
 
@@ -328,11 +525,14 @@
         showMessage(setupMessage, 'אדמין נוצר בהצלחה', 'success');
       } catch (error) {
         console.error(error);
-        showMessage(setupMessage, 'יצירת האדמין נכשלה');
+        showMessage(setupMessage, `יצירת האדמין נכשלה: ${error.code || 'unknown'}`);
+        addDebugLog('error', 'Create first admin failed', formatError(error));
+        openDebugPanel();
       }
     });
 
     logoutBtn.addEventListener('click', async () => { await signOut(auth); showPage(loginPage); });
+    addDebugLog('info', `${APP_NAME} ${APP_VERSION} loaded successfully`, `domain: ${location.hostname}`);
     console.log(`${APP_NAME} ${APP_VERSION} loaded successfully`);
   </script>
 </body>
