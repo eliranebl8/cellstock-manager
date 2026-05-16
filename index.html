@@ -6,7 +6,7 @@
   <title>CellStock Manager</title>
   <!--
     CellStock Manager
-    Version: 1.0.10
+    Version: 1.1.0
 
     CHANGELOG:
     - V1.0.10
@@ -180,13 +180,15 @@
 
 <div id="priceModal" class="modalBackdrop hidden">
   <div class="modalCard resetCompact">
-    <h2 class="mb8">עדכון מחיר</h2>
+    <h2 class="mb8">עדכון מחירי פריט</h2>
     <p id="priceModalItemName" class="muted mb16"></p>
-    <div class="field"><label>מחיר נוכחי</label><input id="priceOldValue" type="number" disabled></div>
-    <div class="field"><label>מחיר חדש</label><input id="priceNewValue" type="number" placeholder="הזן מחיר מכירה חדש"></div>
+    <div class="field"><label>עלות נוכחית</label><input id="priceOldCostValue" type="number" disabled></div>
+    <div class="field"><label>עלות חדשה</label><input id="priceNewCostValue" type="number" placeholder="הזן מחיר עלות חדש"></div>
+    <div class="field"><label>מחיר מכירה נוכחי</label><input id="priceOldSaleValue" type="number" disabled></div>
+    <div class="field"><label>מחיר מכירה חדש</label><input id="priceNewSaleValue" type="number" placeholder="הזן מחיר מכירה חדש"></div>
     <div id="priceModalMsg" class="msg"></div>
     <div class="actions">
-      <button id="savePriceBtn" class="btn btnGood">שמור מחיר</button>
+      <button id="savePriceBtn" class="btn btnGood">שמור מחירים</button>
       <button id="cancelPriceBtn" class="btn btnGhost">ביטול</button>
     </div>
   </div>
@@ -205,7 +207,7 @@
 
 <script type="module">
   const APP_NAME='CellStock Manager';
-  const APP_VERSION='1.0.10';
+  const APP_VERSION='1.1.0';
   document.querySelectorAll('[data-version]').forEach(el=>el.textContent=APP_VERSION);
 
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
@@ -440,11 +442,19 @@
       : `${i.name||i.sku||'פריט'} ${i.brand||''} ${i.model||''}`.trim();
   }
 
+  function itemCostValue(item){
+    return Number(item?.trackingType==='serial' ? (item.purchaseCost||0) : (item.unitCost||0));
+  }
+
   function priceHistoryHtml(history=[]){
     if(!history.length)return '<p class="muted">אין עדיין היסטוריית מחירים לפריט הזה.</p>';
     return history.slice().reverse().map(h=>{
       const d=h.changedAt?.toDate? h.changedAt.toDate().toLocaleString('he-IL') : (h.changedAtText||'-');
-      return `<div class="item"><b>${money(h.oldPrice)} → ${money(h.newPrice)}</b><div class="kv"><span>תאריך: <b>${escapeHtml(d)}</b></span><span>עודכן על ידי: <b>${escapeHtml(h.changedByName||'-')}</b></span></div></div>`;
+      const oldCost = h.oldCost ?? h.oldUnitCost ?? h.oldPurchaseCost ?? 0;
+      const newCost = h.newCost ?? h.newUnitCost ?? h.newPurchaseCost ?? 0;
+      const oldSale = h.oldSalePrice ?? h.oldPrice ?? 0;
+      const newSale = h.newSalePrice ?? h.newPrice ?? 0;
+      return `<div class="item"><b>עלות: ${money(oldCost)} → ${money(newCost)}</b><br><b>מכירה: ${money(oldSale)} → ${money(newSale)}</b><div class="kv"><span>תאריך: <b>${escapeHtml(d)}</b></span><span>עודכן על ידי: <b>${escapeHtml(h.changedByName||'-')}</b></span></div></div>`;
     }).join('');
   }
 
@@ -452,12 +462,16 @@
     const item=items.find(i=>i.id===id);
     if(!item)return;
     currentPriceItemId=id;
+    const oldCost=itemCostValue(item);
+    const oldSale=Number(item.salePrice||0);
     $('priceModalItemName').textContent=itemDisplayName(item);
-    $('priceOldValue').value=Number(item.salePrice||0);
-    $('priceNewValue').value='';
+    $('priceOldCostValue').value=oldCost;
+    $('priceNewCostValue').value=oldCost;
+    $('priceOldSaleValue').value=oldSale;
+    $('priceNewSaleValue').value=oldSale;
     $('priceModalMsg').className='msg';
     $('priceModal').classList.remove('hidden');
-    setTimeout(()=>$('priceNewValue').focus(),80);
+    setTimeout(()=>$('priceNewCostValue').focus(),80);
   }
 
   function closePriceModal(){
@@ -470,15 +484,43 @@
       $('priceModalMsg').className='msg';
       const item=items.find(i=>i.id===currentPriceItemId);
       if(!item)return msg($('priceModalMsg'),'הפריט לא נמצא');
-      const raw=clean($('priceNewValue').value);
-      if(!raw||!Number.isFinite(Number(raw))||Number(raw)<0)return msg($('priceModalMsg'),'חובה להזין מחיר מספרי תקין');
-      const oldPrice=Number(item.salePrice||0), newPrice=Number(raw);
-      if(oldPrice===newPrice)return msg($('priceModalMsg'),'המחיר החדש זהה למחיר הנוכחי');
+      const rawCost=clean($('priceNewCostValue').value);
+      const rawSale=clean($('priceNewSaleValue').value);
+      if(rawCost===''||!Number.isFinite(Number(rawCost))||Number(rawCost)<0)return msg($('priceModalMsg'),'חובה להזין מחיר עלות מספרי תקין');
+      if(rawSale===''||!Number.isFinite(Number(rawSale))||Number(rawSale)<0)return msg($('priceModalMsg'),'חובה להזין מחיר מכירה מספרי תקין');
+
+      const oldCost=itemCostValue(item);
+      const oldSalePrice=Number(item.salePrice||0);
+      const newCost=Number(rawCost);
+      const newSalePrice=Number(rawSale);
+      if(oldCost===newCost && oldSalePrice===newSalePrice)return msg($('priceModalMsg'),'מחיר העלות ומחיר המכירה זהים למחירים הנוכחיים');
+
       const history=Array.isArray(item.priceHistory)?item.priceHistory.slice():[];
-      history.push({oldPrice,newPrice,changedBy:currentUser?.uid||'',changedByName:currentProfile?.fullName||'',changedAtText:new Date().toLocaleString('he-IL')});
-      await updateDoc(doc(db,'items',item.id),{salePrice:newPrice,priceHistory:history,updatedAt:serverTimestamp(),lastPriceChangedAt:serverTimestamp(),lastPriceChangedBy:currentUser?.uid||''});
-      await activity('PRICE_UPDATED',{id:item.id,itemName:itemDisplayName(item),oldPrice,newPrice});
-      msg($('priceModalMsg'),'המחיר עודכן בהצלחה','ok');
+      history.push({
+        oldCost,
+        newCost,
+        oldSalePrice,
+        newSalePrice,
+        oldPrice: oldSalePrice,
+        newPrice: newSalePrice,
+        changedBy:currentUser?.uid||'',
+        changedByName:currentProfile?.fullName||'',
+        changedAtText:new Date().toLocaleString('he-IL')
+      });
+
+      const updateData={
+        salePrice:newSalePrice,
+        priceHistory:history,
+        updatedAt:serverTimestamp(),
+        lastPriceChangedAt:serverTimestamp(),
+        lastPriceChangedBy:currentUser?.uid||''
+      };
+      if(item.trackingType==='serial') updateData.purchaseCost=newCost;
+      else updateData.unitCost=newCost;
+
+      await updateDoc(doc(db,'items',item.id),updateData);
+      await activity('PRICE_UPDATED',{id:item.id,itemName:itemDisplayName(item),oldCost,newCost,oldSalePrice,newSalePrice});
+      msg($('priceModalMsg'),'מחיר העלות ומחיר המכירה עודכנו בהצלחה','ok');
       await loadData();
       setTimeout(()=>{closePriceModal();renderApp();},500);
     }catch(e){err(e,'price update failed');msg($('priceModalMsg'),'עדכון מחיר נכשל')}
@@ -527,7 +569,7 @@
   function workers(){if(!isAdmin())return '<div class="card">אין הרשאה</div>';return `<h2 class="sectionTitle">עובדים והרשאות</h2><div class="card"><h3 class="mb12">הוספת עובד</h3><p class="muted mb12">יצירת עובד משתמשת בחיבור משני כדי להשאיר אותך מחובר כאדמין.</p><div class="row"><div class="field"><label>שם מלא</label><input id="wName"></div><div class="field"><label>אימייל</label><input id="wEmail" type="email"></div><div class="field"><label>סיסמה</label><input id="wPass" type="password"></div><div class="field"><label>תפקיד</label><select id="wRole"><option value="worker">עובד</option><option value="admin">אדמין</option></select></div></div><button id="addWorkerBtn" class="btn btnGood">צור עובד</button><div id="workerMsg" class="msg"></div></div><div class="card mt16"><h3 class="mb12">רשימת עובדים</h3><div class="list">${users.map(u=>`<div class="item"><div class="itemHead"><div><b>${u.fullName||'-'}</b><div class="muted">${u.email||''}</div></div><span class="status ${u.active===false?'bad':'good'}">${u.role==='admin'?'אדמין':'עובד'} • ${u.active===false?'חסום':'פעיל'}</span></div><div class="actions"><button class="btn btnSmall btnGhost toggleUser" data-id="${u.uid||u.id}" data-active="${u.active!==false}">${u.active===false?'הפעל':'חסום'}</button><button class="btn btnSmall btnGhost roleUser" data-id="${u.uid||u.id}" data-role="${u.role}">${u.role==='admin'?'הפוך לעובד':'הפוך לאדמין'}</button></div></div>`).join('')}</div></div>`}
   function reports(){return `<h2 class="sectionTitle">דוחות</h2><div class="grid"><div class="card"><h3>מכירות</h3><div class="statNum">${sales.length}</div></div><div class="card"><h3>סה״כ הכנסות</h3><div class="statNum">${money(sales.reduce((s,x)=>s+Number(x.salePrice||0),0))}</div></div><div class="card"><h3>מלאי נמוך</h3><div class="statNum">${items.filter(i=>i.trackingType==='quantity'&&(Number(i.quantity)||0)<=(Number(i.lowStockAlert)||0)).length}</div></div></div>`}
   function backup(){return `<h2 class="sectionTitle">גיבוי ושחזור</h2><div class="card"><p class="muted mb12">ייצוא ושחזור בסיסי ל־JSON.</p><div class="actions"><button id="exportBtn" class="btn btnGood">ייצוא JSON</button><label class="btn btnGhost">ייבוא JSON<input id="importFile" type="file" accept="application/json" class="hidden"></label></div><div id="backupMsg" class="msg"></div></div>`}
-  function changelog(){return `<h2 class="sectionTitle">מה חדש</h2><div class="card"><h3 class="mb12">Version ${APP_VERSION}</h3><ul style="padding-right:20px;line-height:1.9;color:#cbd5e1"><li><b>V1.0.10</b> — נוספו סימון פריט כפעיל/לא פעיל, שינוי מחיר עם היסטוריית מחירים לכל מוצר, והוחלפה הודעת המחיקה במודאל יפה עם כן/לא.</li><li><b>V1.0.9</b> — הוסתרו זמנית כפתורי מה חדש ולוג שגיאות מהמסך, והחיפוש שודרג לסינון לפי סוג מלאי, מותג, דגם, קטגוריה, סטטוס וטקסט חופשי עם הצעות חכמות.</li><li><b>V1.0.8</b> — נוסף כפתור שכחתי סיסמה במסך הכניסה, עם שליחת מייל איפוס סיסמה דרך Firebase Authentication.</li><li><b>V1.0.7</b> — מסך איפוס הוקטן ופושט: 10 לחיצות על הגרסה, סיסמה, אישור כן/לא ואיפוס.</li><li><b>V1.0.6</b> — נוסף איפוס מערכת מוסתר דרך 10 לחיצות על מספר הגרסה, עם בדיקת סיסמה לפי Hash בלבד ואישור מחיקה מפורש.</li><li>האיפוס מוחק את כל אוספי Firestore של המערכת ומנסה למחוק גם את משתמש האדמין המחובר מ־Firebase Authentication.</li><li><b>V1.0.5</b> — שדה כמות סידורית מתחיל ריק, חובה להזין מספר תקין, ושדה IMEI מוצג רק אחרי כמות תקינה.</li><li>רשימות מותג/דגם/קטגוריה/ספק כבר לא נפתחות בפוקוס ריק; הן נפתחות רק אחרי הקלדה ומציגות תוצאות מסוננות בלבד.</li><li><b>V1.0.4</b> — נוספה בדיקת IMEI: ספרות בלבד ובדיוק 15 ספרות לפני שמירה או מכירה.</li><li>נוספו רשימות חכמות למותג, דגם, קטגוריה וספק מתוך מה שכבר נשמר במלאי. ערך חדש שתקליד יופיע בפעמים הבאות.</li><li><b>V1.0.3</b> — הוספת כמה מכשירים סידוריים מאותו דגם בפעם אחת, עם שדה IMEI/Serial נפרד לכל יחידה.</li><li>כאשר הכמות היא 1 מוצג שדה סידורי יחיד; כאשר הכמות גדולה מ־1 מוצגים בדיוק מספר השדות לפי הכמות.</li><li>נוספה בדיקת כפילות: אי אפשר לשמור IMEI/Serial שכבר קיים במלאי או שחוזר על עצמו באותה הכנסת מלאי.</li><li><b>V1.0.2</b> — טקסט כניסה ראשון מקצועי יותר וכפתור מה חדש מהיר בתחתית.</li><li><b>V1.0.1</b> — כפתור העתקת לוג שגיאות, אימות IMEI/Serial במכירה סידורית, ויצירת עובד בלי להעביר אותך מחשבון האדמין.</li><li><b>V1.0.0</b> — בנייה נקייה: Auth, אדמין ראשון, מלאי סידורי, מלאי כמותי, חיפוש, מכירה, עובדים, דוחות וגיבוי.</li></ul></div>`}
+  function changelog(){return `<h2 class="sectionTitle">מה חדש</h2><div class="card"><h3 class="mb12">Version ${APP_VERSION}</h3><ul style="padding-right:20px;line-height:1.9;color:#cbd5e1"><li><b>V1.1.0</b> — שינוי מחיר שודרג לעדכון כפול: מחיר עלות ומחיר מכירה, עם היסטוריית לפני/אחרי לכל אחד מהם.</li><li><b>V1.0.10</b> — נוספו סימון פריט כפעיל/לא פעיל, שינוי מחיר עם היסטוריית מחירים לכל מוצר, והוחלפה הודעת המחיקה במודאל יפה עם כן/לא.</li><li><b>V1.0.9</b> — הוסתרו זמנית כפתורי מה חדש ולוג שגיאות מהמסך, והחיפוש שודרג לסינון לפי סוג מלאי, מותג, דגם, קטגוריה, סטטוס וטקסט חופשי עם הצעות חכמות.</li><li><b>V1.0.8</b> — נוסף כפתור שכחתי סיסמה במסך הכניסה, עם שליחת מייל איפוס סיסמה דרך Firebase Authentication.</li><li><b>V1.0.7</b> — מסך איפוס הוקטן ופושט: 10 לחיצות על הגרסה, סיסמה, אישור כן/לא ואיפוס.</li><li><b>V1.0.6</b> — נוסף איפוס מערכת מוסתר דרך 10 לחיצות על מספר הגרסה, עם בדיקת סיסמה לפי Hash בלבד ואישור מחיקה מפורש.</li><li>האיפוס מוחק את כל אוספי Firestore של המערכת ומנסה למחוק גם את משתמש האדמין המחובר מ־Firebase Authentication.</li><li><b>V1.0.5</b> — שדה כמות סידורית מתחיל ריק, חובה להזין מספר תקין, ושדה IMEI מוצג רק אחרי כמות תקינה.</li><li>רשימות מותג/דגם/קטגוריה/ספק כבר לא נפתחות בפוקוס ריק; הן נפתחות רק אחרי הקלדה ומציגות תוצאות מסוננות בלבד.</li><li><b>V1.0.4</b> — נוספה בדיקת IMEI: ספרות בלבד ובדיוק 15 ספרות לפני שמירה או מכירה.</li><li>נוספו רשימות חכמות למותג, דגם, קטגוריה וספק מתוך מה שכבר נשמר במלאי. ערך חדש שתקליד יופיע בפעמים הבאות.</li><li><b>V1.0.3</b> — הוספת כמה מכשירים סידוריים מאותו דגם בפעם אחת, עם שדה IMEI/Serial נפרד לכל יחידה.</li><li>כאשר הכמות היא 1 מוצג שדה סידורי יחיד; כאשר הכמות גדולה מ־1 מוצגים בדיוק מספר השדות לפי הכמות.</li><li>נוספה בדיקת כפילות: אי אפשר לשמור IMEI/Serial שכבר קיים במלאי או שחוזר על עצמו באותה הכנסת מלאי.</li><li><b>V1.0.2</b> — טקסט כניסה ראשון מקצועי יותר וכפתור מה חדש מהיר בתחתית.</li><li><b>V1.0.1</b> — כפתור העתקת לוג שגיאות, אימות IMEI/Serial במכירה סידורית, ויצירת עובד בלי להעביר אותך מחשבון האדמין.</li><li><b>V1.0.0</b> — בנייה נקייה: Auth, אדמין ראשון, מלאי סידורי, מלאי כמותי, חיפוש, מכירה, עובדים, דוחות וגיבוי.</li></ul></div>`}
 
   function itemCard(i){
     const title=i.trackingType==='serial'?`${i.brand||''} ${i.model||''} ${i.storage||''}`.trim():i.name||i.sku||'פריט';
