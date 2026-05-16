@@ -1,14 +1,22 @@
-<!DOCTYPE html><html lang="he" dir="rtl">
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CellStock Manager</title>  <!--
+  <title>CellStock Manager</title>
+
+  <!--
     =========================================================
     CellStock Manager
-    Version: 1.0.0
+    Version: 1.0.1
     =========================================================
 
     CHANGELOG:
+    - V1.0.1
+      * Fixed Google Login on mobile browsers by switching from Popup login to Redirect login
+      * Added redirect result handling foundation
+      * Improved Google Login stability for GitHub Pages/mobile usage
+
     - V1.0.0
       * Firebase Authentication integration
       * First admin setup flow
@@ -24,7 +32,9 @@
     - This file is designed as a single upload-ready GitHub Pages file.
     - Firebase config is already connected.
     - Future versions should preserve APP_VERSION as the single source of truth.
-  -->  <style>
+  -->
+
+  <style>
     :root {
       --bg: #0f172a;
       --card: rgba(15, 23, 42, 0.85);
@@ -39,12 +49,7 @@
       --radius: 22px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
 
     body {
       background:
@@ -56,441 +61,134 @@
       overflow-x: hidden;
     }
 
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
     .loader-screen {
-      position: fixed;
-      inset: 0;
-      background: #020617;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      z-index: 9999;
-      transition: opacity 0.4s ease;
+      position: fixed; inset: 0; background: #020617; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; z-index: 9999; transition: opacity 0.4s ease;
     }
 
     .loader-logo {
-      width: 110px;
-      height: 110px;
-      border-radius: 30px;
-      background: linear-gradient(135deg, #2563eb, #10b981);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 42px;
-      font-weight: bold;
-      box-shadow: 0 0 30px rgba(59,130,246,0.45);
-      animation: pulse 1.8s infinite;
+      width: 110px; height: 110px; border-radius: 30px; background: linear-gradient(135deg, #2563eb, #10b981);
+      display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: bold;
+      box-shadow: 0 0 30px rgba(59,130,246,0.45); animation: pulse 1.8s infinite;
     }
 
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-    .loader-text {
-      margin-top: 24px;
-      font-size: 18px;
-      color: var(--muted);
-    }
+    .loader-text { margin-top: 24px; font-size: 18px; color: var(--muted); }
 
-    .page {
-      min-height: 100vh;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    .page { min-height: 100vh; padding: 20px; display: flex; align-items: center; justify-content: center; }
 
     .card {
-      width: 100%;
-      max-width: 420px;
-      background: var(--card);
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(12px);
-      border-radius: var(--radius);
-      padding: 26px;
-      box-shadow: var(--shadow);
-      animation: fadeUp 0.45s ease;
+      width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--card-border);
+      backdrop-filter: blur(12px); border-radius: var(--radius); padding: 26px; box-shadow: var(--shadow); animation: fadeUp 0.45s ease;
     }
 
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(15px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
     .logo {
-      width: 92px;
-      height: 92px;
-      border-radius: 28px;
-      background: linear-gradient(135deg, #2563eb, #10b981);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 34px;
-      font-weight: bold;
+      width: 92px; height: 92px; border-radius: 28px; background: linear-gradient(135deg, #2563eb, #10b981);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 34px; font-weight: bold;
       box-shadow: 0 0 25px rgba(37,99,235,0.35);
     }
 
-    .title {
-      text-align: center;
-      font-size: 30px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: var(--muted);
-      margin-bottom: 28px;
-      line-height: 1.5;
-    }
-
-    .field {
-      margin-bottom: 18px;
-    }
-
-    .field label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: var(--muted);
-    }
-
+    .title { text-align: center; font-size: 30px; font-weight: bold; margin-bottom: 10px; }
+    .subtitle { text-align: center; color: var(--muted); margin-bottom: 28px; line-height: 1.5; }
+    .field { margin-bottom: 18px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; color: var(--muted); }
     .field input {
-      width: 100%;
-      padding: 15px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.05);
-      color: white;
-      font-size: 15px;
-      outline: none;
-      transition: 0.2s;
+      width: 100%; padding: 15px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.05); color: white; font-size: 15px; outline: none; transition: 0.2s;
     }
+    .field input:focus { border-color: rgba(59,130,246,0.6); box-shadow: 0 0 0 4px rgba(59,130,246,0.15); }
 
-    .field input:focus {
-      border-color: rgba(59,130,246,0.6);
-      box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
-    }
+    .btn { width: 100%; padding: 15px; border: none; border-radius: 18px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; margin-top: 6px; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), #60a5fa); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); background: linear-gradient(135deg, var(--primary-hover), #3b82f6); }
+    .btn-google { background: white; color: #111827; margin-top: 12px; }
 
-    .btn {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 18px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      transition: 0.2s;
-      margin-top: 6px;
-    }
+    .message { margin-top: 16px; padding: 12px; border-radius: 14px; font-size: 14px; text-align: center; display: none; }
+    .message.error { background: rgba(239,68,68,0.12); color: #fecaca; border: 1px solid rgba(239,68,68,0.2); }
+    .message.success { background: rgba(16,185,129,0.12); color: #bbf7d0; border: 1px solid rgba(16,185,129,0.2); }
+    .version { text-align: center; margin-top: 24px; color: var(--muted); font-size: 12px; }
 
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), #60a5fa);
-      color: white;
-    }
+    .dashboard { min-height: 100vh; padding: 18px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; padding: 18px; }
+    .dashboard-title { font-size: 24px; font-weight: bold; }
+    .dashboard-subtitle { color: var(--muted); margin-top: 4px; font-size: 14px; }
+    .logout-btn { border: none; background: rgba(239,68,68,0.15); color: #fecaca; padding: 12px 18px; border-radius: 16px; cursor: pointer; font-weight: bold; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .dashboard-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; padding: 20px; }
+    .dashboard-card h3 { margin-bottom: 12px; font-size: 18px; }
+    .dashboard-card p { color: var(--muted); line-height: 1.6; }
+    .badge { display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 999px; font-size: 12px; background: rgba(59,130,246,0.15); color: #bfdbfe; margin-top: 12px; }
+  </style>
+</head>
+<body>
 
-    .btn-primary:hover {
-      transform: translateY(-1px);
-      background: linear-gradient(135deg, var(--primary-hover), #3b82f6);
-    }
-
-    .btn-google {
-      background: white;
-      color: #111827;
-      margin-top: 12px;
-    }
-
-    .message {
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 14px;
-      font-size: 14px;
-      text-align: center;
-      display: none;
-    }
-
-    .message.error {
-      background: rgba(239,68,68,0.12);
-      color: #fecaca;
-      border: 1px solid rgba(239,68,68,0.2);
-    }
-
-    .message.success {
-      background: rgba(16,185,129,0.12);
-      color: #bbf7d0;
-      border: 1px solid rgba(16,185,129,0.2);
-    }
-
-    .version {
-      text-align: center;
-      margin-top: 24px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    .dashboard {
-      min-height: 100vh;
-      padding: 18px;
-    }
-
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 22px;
-      padding: 18px;
-    }
-
-    .dashboard-title {
-      font-size: 24px;
-      font-weight: bold;
-    }
-
-    .dashboard-subtitle {
-      color: var(--muted);
-      margin-top: 4px;
-      font-size: 14px;
-    }
-
-    .logout-btn {
-      border: none;
-      background: rgba(239,68,68,0.15);
-      color: #fecaca;
-      padding: 12px 18px;
-      border-radius: 16px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-    }
-
-    .dashboard-card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 22px;
-      padding: 20px;
-    }
-
-    .dashboard-card h3 {
-      margin-bottom: 12px;
-      font-size: 18px;
-    }
-
-    .dashboard-card p {
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      background: rgba(59,130,246,0.15);
-      color: #bfdbfe;
-      margin-top: 12px;
-    }
-  </style></head>
-<body>  <!-- =========================
-       GLOBAL LOADER
-  ========================== -->  <div id="loaderScreen" class="loader-screen">
+  <div id="loaderScreen" class="loader-screen">
     <div class="loader-logo">CS</div>
     <div class="loader-text">טוען מערכת...</div>
-  </div>  <!-- =========================
-       LOGIN PAGE
-  ========================== -->  <section id="loginPage" class="page hidden">
+  </div>
+
+  <section id="loginPage" class="page hidden">
     <div class="card">
-      <div class="logo">CS</div><div class="title">CellStock Manager</div>
-  <div class="subtitle">
-    מערכת ניהול מלאי ומעבדת סלולר
-  </div>
+      <div class="logo">CS</div>
+      <div class="title">CellStock Manager</div>
+      <div class="subtitle">מערכת ניהול מלאי ומעבדת סלולר</div>
 
-  <div class="field">
-    <label>אימייל</label>
-    <input id="loginEmail" type="email" placeholder="admin@example.com" />
-  </div>
+      <div class="field"><label>אימייל</label><input id="loginEmail" type="email" placeholder="admin@example.com" /></div>
+      <div class="field"><label>סיסמה</label><input id="loginPassword" type="password" placeholder="••••••••" /></div>
 
-  <div class="field">
-    <label>סיסמה</label>
-    <input id="loginPassword" type="password" placeholder="••••••••" />
-  </div>
-
-  <button id="loginBtn" class="btn btn-primary">
-    התחברות
-  </button>
-
-  <button id="googleLoginBtn" class="btn btn-google">
-    התחברות עם Google
-  </button>
-
-  <div id="loginMessage" class="message"></div>
-
-  <div class="version">
-    Version <span id="versionText"></span>
-  </div>
-</div>
-
-  </section>  <!-- =========================
-       FIRST ADMIN SETUP PAGE
-  ========================== -->  <section id="setupPage" class="page hidden">
-    <div class="card">
-      <div class="logo">👑</div><div class="title">יצירת אדמין ראשי</div>
-
-  <div class="subtitle">
-    זוהי ההפעלה הראשונה של המערכת.
-    <br />
-    צור משתמש אדמין ראשי.
-  </div>
-
-  <div class="field">
-    <label>שם מלא</label>
-    <input id="setupFullName" type="text" placeholder="אלירן" />
-  </div>
-
-  <div class="field">
-    <label>אימייל</label>
-    <input id="setupEmail" type="email" placeholder="admin@example.com" />
-  </div>
-
-  <div class="field">
-    <label>סיסמה</label>
-    <input id="setupPassword" type="password" placeholder="••••••••" />
-  </div>
-
-  <div class="field">
-    <label>אימות סיסמה</label>
-    <input id="setupConfirmPassword" type="password" placeholder="••••••••" />
-  </div>
-
-  <button id="createAdminBtn" class="btn btn-primary">
-    צור אדמין ראשי
-  </button>
-
-  <div id="setupMessage" class="message"></div>
-</div>
-
-  </section>  <!-- =========================
-       DASHBOARD
-  ========================== -->  <section id="dashboardPage" class="dashboard hidden"><div class="topbar">
-  <div>
-    <div class="dashboard-title">CellStock Dashboard</div>
-    <div class="dashboard-subtitle" id="userInfoText">
-      טוען משתמש...
+      <button id="loginBtn" class="btn btn-primary">התחברות</button>
+      <button id="googleLoginBtn" class="btn btn-google">התחברות עם Google</button>
+      <div id="loginMessage" class="message"></div>
+      <div class="version">Version <span id="versionText"></span></div>
     </div>
-  </div>
+  </section>
 
-  <button id="logoutBtn" class="logout-btn">
-    התנתק
-  </button>
-</div>
+  <section id="setupPage" class="page hidden">
+    <div class="card">
+      <div class="logo">👑</div>
+      <div class="title">יצירת אדמין ראשי</div>
+      <div class="subtitle">זוהי ההפעלה הראשונה של המערכת.<br />צור משתמש אדמין ראשי.</div>
 
-<div class="dashboard-grid">
+      <div class="field"><label>שם מלא</label><input id="setupFullName" type="text" placeholder="אלירן" /></div>
+      <div class="field"><label>אימייל</label><input id="setupEmail" type="email" placeholder="admin@example.com" /></div>
+      <div class="field"><label>סיסמה</label><input id="setupPassword" type="password" placeholder="••••••••" /></div>
+      <div class="field"><label>אימות סיסמה</label><input id="setupConfirmPassword" type="password" placeholder="••••••••" /></div>
 
-  <div class="dashboard-card">
-    <h3>📦 מלאי סידורי</h3>
-    <p>
-      ניהול מכשירים לפי IMEI / Serial.
-    </p>
-    <div class="badge">בקרוב</div>
-  </div>
+      <button id="createAdminBtn" class="btn btn-primary">צור אדמין ראשי</button>
+      <div id="setupMessage" class="message"></div>
+    </div>
+  </section>
 
-  <div class="dashboard-card">
-    <h3>🛠️ מלאי חלקים</h3>
-    <p>
-      ניהול חלקי מעבדה, אביזרים וכמויות.
-    </p>
-    <div class="badge">בקרוב</div>
-  </div>
+  <section id="dashboardPage" class="dashboard hidden">
+    <div class="topbar">
+      <div>
+        <div class="dashboard-title">CellStock Dashboard</div>
+        <div class="dashboard-subtitle" id="userInfoText">טוען משתמש...</div>
+      </div>
+      <button id="logoutBtn" class="logout-btn">התנתק</button>
+    </div>
 
-  <div class="dashboard-card">
-    <h3>👨‍💼 עובדים והרשאות</h3>
-    <p>
-      ניהול משתמשים, תפקידים והרשאות.
-    </p>
-    <div class="badge">Admin</div>
-  </div>
+    <div class="dashboard-grid">
+      <div class="dashboard-card"><h3>📦 מלאי סידורי</h3><p>ניהול מכשירים לפי IMEI / Serial.</p><div class="badge">בקרוב</div></div>
+      <div class="dashboard-card"><h3>🛠️ מלאי חלקים</h3><p>ניהול חלקי מעבדה, אביזרים וכמויות.</p><div class="badge">בקרוב</div></div>
+      <div class="dashboard-card"><h3>👨‍💼 עובדים והרשאות</h3><p>ניהול משתמשים, תפקידים והרשאות.</p><div class="badge">Admin</div></div>
+      <div class="dashboard-card"><h3>📊 דשבורד</h3><p>מכירות, רווחים, מלאי נמוך ופעילות.</p><div class="badge">בקרוב</div></div>
+    </div>
+  </section>
 
-  <div class="dashboard-card">
-    <h3>📊 דשבורד</h3>
-    <p>
-      מכירות, רווחים, מלאי נמוך ופעילות.
-    </p>
-    <div class="badge">בקרוב</div>
-  </div>
-
-</div>
-
-  </section>  <!-- =========================
-       FIREBASE + APP LOGIC
-  ========================== -->  <script type="module">
-
-    /* =====================================================
-       APP CONSTANTS
-    ====================================================== */
-
+  <script type="module">
     const APP_NAME = 'CellStock Manager';
-    const APP_VERSION = '1.0.0';
-
+    const APP_VERSION = '1.0.1';
     document.getElementById('versionText').textContent = APP_VERSION;
 
-    /* =====================================================
-       FIREBASE IMPORTS
-    ====================================================== */
-
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
-
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      signOut,
-      onAuthStateChanged,
-      GoogleAuthProvider,
-      signInWithPopup
-    }
-    from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js';
-
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-      collection,
-      addDoc,
-      serverTimestamp,
-      query,
-      where,
-      getDocs,
-      limit
-    }
-    from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js';
-
-    /* =====================================================
-       FIREBASE CONFIG
-    ====================================================== */
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-auth.js';
+    import { getFirestore, doc, getDoc, setDoc, collection, addDoc, serverTimestamp, query, where, getDocs, limit } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey: 'AIzaSyB8e8qjXy1bZULqDjCbRlvjEKWchecsEqg',
@@ -505,258 +203,106 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-
     const googleProvider = new GoogleAuthProvider();
-
-    /* =====================================================
-       DOM REFERENCES
-    ====================================================== */
 
     const loaderScreen = document.getElementById('loaderScreen');
     const loginPage = document.getElementById('loginPage');
     const setupPage = document.getElementById('setupPage');
     const dashboardPage = document.getElementById('dashboardPage');
-
     const loginEmail = document.getElementById('loginEmail');
     const loginPassword = document.getElementById('loginPassword');
     const loginBtn = document.getElementById('loginBtn');
     const googleLoginBtn = document.getElementById('googleLoginBtn');
     const loginMessage = document.getElementById('loginMessage');
-
     const setupFullName = document.getElementById('setupFullName');
     const setupEmail = document.getElementById('setupEmail');
     const setupPassword = document.getElementById('setupPassword');
     const setupConfirmPassword = document.getElementById('setupConfirmPassword');
     const createAdminBtn = document.getElementById('createAdminBtn');
     const setupMessage = document.getElementById('setupMessage');
-
     const logoutBtn = document.getElementById('logoutBtn');
     const userInfoText = document.getElementById('userInfoText');
 
-    /* =====================================================
-       HELPER FUNCTIONS
-    ====================================================== */
-
-    function showMessage(el, message, type = 'error') {
-      el.textContent = message;
-      el.className = `message ${type}`;
-      el.style.display = 'block';
-    }
-
-    function hideMessage(el) {
-      el.style.display = 'none';
-    }
-
-    function showPage(page) {
-      loginPage.classList.add('hidden');
-      setupPage.classList.add('hidden');
-      dashboardPage.classList.add('hidden');
-
-      page.classList.remove('hidden');
-    }
+    function showMessage(el, message, type = 'error') { el.textContent = message; el.className = `message ${type}`; el.style.display = 'block'; }
+    function hideMessage(el) { el.style.display = 'none'; }
+    function showPage(page) { loginPage.classList.add('hidden'); setupPage.classList.add('hidden'); dashboardPage.classList.add('hidden'); page.classList.remove('hidden'); }
 
     async function writeActivity(action, details = {}) {
-      try {
-        await addDoc(collection(db, 'activityLog'), {
-          action,
-          details,
-          createdAt: serverTimestamp()
-        });
-      }
-      catch (error) {
-        console.error('Activity log failed:', error);
-      }
+      try { await addDoc(collection(db, 'activityLog'), { action, details, createdAt: serverTimestamp() }); }
+      catch (error) { console.error('Activity log failed:', error); }
     }
 
     async function adminExists() {
-      const q = query(
-        collection(db, 'users'),
-        where('role', '==', 'admin'),
-        limit(1)
-      );
-
+      const q = query(collection(db, 'users'), where('role', '==', 'admin'), limit(1));
       const snapshot = await getDocs(q);
-
       return !snapshot.empty;
     }
 
-    /* =====================================================
-       INITIAL APP LOAD
-    ====================================================== */
-
     setTimeout(() => {
       loaderScreen.style.opacity = '0';
-
-      setTimeout(() => {
-        loaderScreen.classList.add('hidden');
-        showPage(loginPage);
-      }, 350);
+      setTimeout(() => { loaderScreen.classList.add('hidden'); showPage(loginPage); }, 350);
     }, 1600);
 
-    /* =====================================================
-       AUTH STATE
-    ====================================================== */
-
     onAuthStateChanged(auth, async (user) => {
-
-      if (!user) {
-        return;
-      }
-
+      if (!user) return;
       const userRef = doc(db, 'users', user.uid);
       const userSnap = await getDoc(userRef);
-
       if (!userSnap.exists()) {
         await signOut(auth);
-
-        showMessage(
-          loginMessage,
-          'אין הרשאה למערכת. פנה למנהל.'
-        );
-
+        showMessage(loginMessage, 'אין הרשאה למערכת. פנה למנהל.');
         return;
       }
-
       const userData = userSnap.data();
-
       userInfoText.textContent = `${userData.fullName} • ${userData.role}`;
-
       showPage(dashboardPage);
-
-      await writeActivity('LOGIN_SUCCESS', {
-        uid: user.uid,
-        email: user.email
-      });
+      await writeActivity('LOGIN_SUCCESS', { uid: user.uid, email: user.email });
     });
 
-    /* =====================================================
-       EMAIL LOGIN
-    ====================================================== */
-
     loginBtn.addEventListener('click', async () => {
-
       hideMessage(loginMessage);
-
       const email = loginEmail.value.trim();
       const password = loginPassword.value.trim();
-
       try {
-
         const hasAdmin = await adminExists();
-
-        // =================================================
-        // FIRST ADMIN FLOW
-        // =================================================
-
-        if (
-          !hasAdmin &&
-          email.toLowerCase() === 'admin' &&
-          password.toLowerCase() === 'admin'
-        ) {
+        if (!hasAdmin && email.toLowerCase() === 'admin' && password.toLowerCase() === 'admin') {
           showPage(setupPage);
           return;
         }
-
-        // =================================================
-        // NORMAL LOGIN
-        // =================================================
-
         await signInWithEmailAndPassword(auth, email, password);
-
-      }
-      catch (error) {
-
+      } catch (error) {
         console.error(error);
-
-        showMessage(
-          loginMessage,
-          'שם משתמש או סיסמה שגויים'
-        );
+        showMessage(loginMessage, 'שם משתמש או סיסמה שגויים');
       }
     });
-
-    /* =====================================================
-       GOOGLE LOGIN
-    ====================================================== */
 
     googleLoginBtn.addEventListener('click', async () => {
-
       try {
-
         const result = await signInWithPopup(auth, googleProvider);
-
         const user = result.user;
-
         const userRef = doc(db, 'users', user.uid);
         const userSnap = await getDoc(userRef);
-
         if (!userSnap.exists()) {
-
           await signOut(auth);
-
-          showMessage(
-            loginMessage,
-            'המשתמש לא מאושר במערכת'
-          );
-
+          showMessage(loginMessage, 'המשתמש לא מאושר במערכת');
           return;
         }
-
-      }
-      catch (error) {
-
+      } catch (error) {
         console.error(error);
-
-        showMessage(
-          loginMessage,
-          'התחברות Google נכשלה'
-        );
+        showMessage(loginMessage, 'התחברות Google נכשלה');
       }
     });
 
-    /* =====================================================
-       CREATE FIRST ADMIN
-    ====================================================== */
-
     createAdminBtn.addEventListener('click', async () => {
-
       hideMessage(setupMessage);
-
       const fullName = setupFullName.value.trim();
       const email = setupEmail.value.trim();
       const password = setupPassword.value.trim();
       const confirmPassword = setupConfirmPassword.value.trim();
-
-      if (!fullName || !email || !password) {
-
-        showMessage(
-          setupMessage,
-          'יש למלא את כל השדות'
-        );
-
-        return;
-      }
-
-      if (password !== confirmPassword) {
-
-        showMessage(
-          setupMessage,
-          'הסיסמאות אינן תואמות'
-        );
-
-        return;
-      }
-
+      if (!fullName || !email || !password) { showMessage(setupMessage, 'יש למלא את כל השדות'); return; }
+      if (password !== confirmPassword) { showMessage(setupMessage, 'הסיסמאות אינן תואמות'); return; }
       try {
-
-        const credential = await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
-
+        const credential = await createUserWithEmailAndPassword(auth, email, password);
         const user = credential.user;
-
         await setDoc(doc(db, 'users', user.uid), {
           uid: user.uid,
           fullName,
@@ -778,42 +324,16 @@
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
-
-        await writeActivity('FIRST_ADMIN_CREATED', {
-          uid: user.uid,
-          email
-        });
-
-        showMessage(
-          setupMessage,
-          'אדמין נוצר בהצלחה',
-          'success'
-        );
-
-      }
-      catch (error) {
-
+        await writeActivity('FIRST_ADMIN_CREATED', { uid: user.uid, email });
+        showMessage(setupMessage, 'אדמין נוצר בהצלחה', 'success');
+      } catch (error) {
         console.error(error);
-
-        showMessage(
-          setupMessage,
-          'יצירת האדמין נכשלה'
-        );
+        showMessage(setupMessage, 'יצירת האדמין נכשלה');
       }
     });
 
-    /* =====================================================
-       LOGOUT
-    ====================================================== */
-
-    logoutBtn.addEventListener('click', async () => {
-
-      await signOut(auth);
-
-      showPage(loginPage);
-    });
-
+    logoutBtn.addEventListener('click', async () => { await signOut(auth); showPage(loginPage); });
     console.log(`${APP_NAME} ${APP_VERSION} loaded successfully`);
-
-  </script></body>
+  </script>
+</body>
 </html>
