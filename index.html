@@ -294,7 +294,7 @@
 
 <script type="module">
   const APP_NAME='CellStock Manager';
-  const APP_VERSION='1.2.1';
+  const APP_VERSION='1.2.2';
   document.querySelectorAll('[data-version]').forEach(el=>el.textContent=APP_VERSION);
 
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
@@ -837,7 +837,6 @@
     const hasAnyFilter=type!=='all'||status!=='all'||brand||model||category||q;
     if($('searchSummary'))$('searchSummary').textContent=hasAnyFilter?`נמצאו ${res.length} תוצאות`:`מוצגים כל פריטי המלאי (${res.length})`;
     $('searchResults').innerHTML=res.map(itemCard).join('')||'<div class="card"><p class="muted">אין תוצאות</p></div>';
-    document.querySelectorAll('.inventoryModeBtn').forEach(b=>b.onclick=()=>{inventoryMode=b.dataset.mode;renderApp();});
     bindItemActions();
   }
   function bindView(){
@@ -854,6 +853,8 @@
     if($('importFile')) $('importFile').onchange=importJson;
     document.querySelectorAll('.toggleUser').forEach(b=>b.onclick=()=>toggleUser(b.dataset.id,b.dataset.active==='true'));
     document.querySelectorAll('.roleUser').forEach(b=>b.onclick=()=>roleUser(b.dataset.id,b.dataset.role));
+    // V1.2.2: bind Inventory internal selector after the Inventory view is rendered.
+    document.querySelectorAll('.inventoryModeBtn').forEach(b=>b.onclick=()=>{inventoryMode=b.dataset.mode;renderView();});
     bindItemActions();
   }
   function bindItemActions(){
