@@ -165,7 +165,7 @@
     }
     *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,'Segoe UI',sans-serif}
     body{min-height:100vh;background:radial-gradient(circle at 10% 5%,rgba(37,99,235,.28),transparent 32%),radial-gradient(circle at 90% 95%,rgba(16,185,129,.16),transparent 30%),var(--bg);color:var(--text)}
-    button,input,select,textarea{font-family:inherit} .hidden{display:none!important}
+    button,input,select,textarea{font-family:inherit} .lockedField{opacity:.72;pointer-events:none}.hidden{display:none!important}
     .loader{position:fixed;inset:0;z-index:1000;background:#020617;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px}
     .loaderBox{width:100px;height:100px;border-radius:30px;background:linear-gradient(135deg,var(--primary),var(--good));display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;box-shadow:0 0 35px rgba(37,99,235,.45);animation:pulse 1.7s infinite}
     @keyframes pulse{50%{transform:scale(1.06)}}
@@ -305,7 +305,7 @@
 
 <script type="module">
   const APP_NAME='CellStock Manager';
-  const APP_VERSION='1.2.3';
+  const APP_VERSION='1.2.8';
   document.querySelectorAll('[data-version]').forEach(el=>el.textContent=APP_VERSION);
 
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
@@ -850,11 +850,32 @@
     $('searchResults').innerHTML=res.map(itemCard).join('')||'<div class="card"><p class="muted">אין תוצאות</p></div>';
     bindItemActions();
   }
+  // V1.2.7: global outside-click close for suggestion dropdowns.
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('.suggestBox')){
+      closeAllSuggestMenus();
+    }
+  });
+
   function bindView(){
     if($('searchResults')){renderSearchResults(); ['searchType','searchBrand','searchModel','searchCategory','searchStatus','searchQ'].forEach(id=>{const el=$(id); if(el){el.oninput=renderSearchResults; el.onchange=renderSearchResults;}}); if($('clearSearchBtn')) $('clearSearchBtn').onclick=()=>{['searchBrand','searchModel','searchCategory','searchQ'].forEach(id=>{if($(id))$(id).value=''}); if($('searchType'))$('searchType').value='all'; if($('searchStatus'))$('searchStatus').value='all'; renderSearchResults();};}
     bindSmartSuggestions();
     if($('sBulkQty')) { $('sBulkQty').oninput=renderSerialInputMode; renderSerialInputMode(); }
     if($('addSerialBtn')) $('addSerialBtn').onclick=addSerial;
+    if($('qSku')){
+      // V1.2.8: SKU keeps its autocomplete behavior, but force-close its dropdown after change/blur.
+      $('qSku').onchange=()=>{
+        handleQuantitySkuChanged(true);
+        closeSkuSuggestMenu();
+        setTimeout(closeSkuSuggestMenu,20);
+      };
+      $('qSku').onblur=()=>{
+        handleQuantitySkuChanged(true);
+        closeSkuSuggestMenu();
+        setTimeout(closeSkuSuggestMenu,20);
+        setTimeout(closeSkuSuggestMenu,180);
+      };
+    }
     if($('addQuantityBtn')) $('addQuantityBtn').onclick=addQuantity;
     if($('imeiBtn')) $('imeiBtn').onclick=checkImei;
     if($('saleItemSearch')) bindQuickSalePicker();
@@ -879,6 +900,21 @@
     document.querySelectorAll('.editPriceItem').forEach(b=>b.onclick=()=>openPriceModal(b.dataset.id));
     document.querySelectorAll('.historyItem').forEach(b=>b.onclick=()=>openHistoryModal(b.dataset.id));
   }
+  function closeAllSuggestMenus(){
+    document.querySelectorAll('.suggestMenu').forEach(m=>{
+      m.style.display='none';
+      m.innerHTML='';
+    });
+  }
+
+  function closeSkuSuggestMenu(){
+    const menu=$('qSku_suggestMenu');
+    if(menu){
+      menu.style.display='none';
+      menu.innerHTML='';
+    }
+  }
+
   function bindSmartSuggestions(){
     document.querySelectorAll('[data-suggest]').forEach(input=>{
       const menu=$(input.id+'_suggestMenu');
@@ -886,8 +922,18 @@
       const close=()=>{menu.style.display='none';menu.innerHTML='';};
       const previousInputHandler=input.oninput;
       const previousChangeHandler=input.onchange;
+      const previousBlurHandler=input.onblur;
       input.onfocus=()=>{ if(clean(input.value)) input.oninput(); else close(); };
-      input.onblur=()=>setTimeout(close,160);
+      // V1.2.7: always close autocomplete menu after leaving the field.
+      input.onblur=()=>{
+        close();
+        setTimeout(close,30);
+        if(typeof previousBlurHandler==='function') previousBlurHandler.call(input);
+        if(input.id==='qSku'){
+          closeSkuSuggestMenu();
+          setTimeout(closeSkuSuggestMenu,180);
+        }
+      };
       input.oninput=()=>{
         const q=clean(input.value).toLowerCase();
         if(!q){close(); if(typeof previousInputHandler==='function') previousInputHandler.call(input); return;}
@@ -895,7 +941,13 @@
         if(!vals.length){close(); if(typeof previousInputHandler==='function') previousInputHandler.call(input); return;}
         menu.innerHTML=vals.map(v=>`<button type="button" data-val="${escapeHtml(v)}">${escapeHtml(v)}</button>`).join('');
         menu.style.display='block';
-        menu.querySelectorAll('button').forEach(b=>b.onclick=()=>{input.value=b.dataset.val;close(); if(typeof previousChangeHandler==='function') previousChangeHandler.call(input); input.dispatchEvent(new Event('change'));});
+        menu.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+          input.value=b.dataset.val;
+          close();
+          input.dispatchEvent(new Event('input',{bubbles:true}));
+          input.dispatchEvent(new Event('change',{bubbles:true}));
+          if(typeof previousChangeHandler==='function') previousChangeHandler.call(input);
+        });
         if(typeof previousInputHandler==='function') previousInputHandler.call(input);
       };
     });
@@ -1124,7 +1176,144 @@
     msg($('serialMsg'),(entries.length===1?'המכשיר נוסף בהצלחה':`${entries.length} מכשירים נוספו בהצלחה`)+(warnings.length?` — שים לב: ${warnings.join(' | ')}`:''),'ok');
     await loadData();renderApp()
   }catch(e){err(e,'add serial failed');msg($('serialMsg'),'שמירה נכשלה')}}
-  async function addQuantity(){try{const rawQty=clean($('qQty').value); if(!rawQty||!Number.isFinite(Number(rawQty))||Number(rawQty)<0)return msg($('quantityMsg'),'חובה להזין כמות מספרית תקינה'); const data={trackingType:'quantity',sku:clean($('qSku').value),name:clean($('qName').value),category:clean($('qCat').value),brand:clean($('qBrand').value),model:clean($('qModel').value),quantity:Number($('qQty').value||0),lowStockAlert:Number($('qLow').value||0),supplier:clean($('qSupplier').value),unitCost:Number($('qCost').value||0),salePrice:Number($('qPrice').value||0),status:'active',notes:clean($('qNotes').value),createdBy:currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}; if(!data.name&&!data.sku)return msg($('quantityMsg'),'חובה שם פריט או מק״ט'); await addDoc(collection(db,'items'),data);await activity('ADD_QUANTITY_ITEM',data);msg($('quantityMsg'),'הפריט נוסף בהצלחה','ok');await loadData();renderApp()}catch(e){err(e,'add quantity failed');msg($('quantityMsg'),'שמירה נכשלה')}}
+  
+  // V1.2.5: Existing SKU auto-fill and field locking, including dropdown selection/manual typing/clear.
+  function findExistingQuantitySku(skuValue){
+    const sku=clean(skuValue).toLowerCase();
+    if(!sku)return null;
+    return items.find(i=>i.trackingType==='quantity' && clean(i.sku).toLowerCase()===sku) || null;
+  }
+
+  function setLockedInput(id,locked){
+    const el=$(id);
+    if(!el)return;
+    el.disabled=!!locked;
+    el.readOnly=!!locked;
+    el.classList.toggle('lockedField',!!locked);
+  }
+
+  function clearQuantityIdentityFields(){
+    ['qName','qCat','qBrand','qModel','qSupplier'].forEach(id=>{
+      const el=$(id);
+      if(el)el.value='';
+    });
+    if($('qCost')) $('qCost').value='';
+    if($('qPrice')) $('qPrice').value='';
+  }
+
+  function applyExistingSkuState(existingItem){
+    const locked=!!existingItem;
+    ['qName','qCat','qBrand','qModel','qSupplier'].forEach(id=>setLockedInput(id,locked));
+
+    if(!existingItem){
+      clearQuantityIdentityFields();
+      if($('quantityMsg')) $('quantityMsg').className='msg';
+      return;
+    }
+
+    if($('qName')) $('qName').value=existingItem.name||'';
+    if($('qCat')) $('qCat').value=existingItem.category||'';
+    if($('qBrand')) $('qBrand').value=existingItem.brand||'';
+    if($('qModel')) $('qModel').value=existingItem.model||'';
+    if($('qSupplier')) $('qSupplier').value=existingItem.supplier||'';
+
+    // Prices remain editable by design.
+    if($('qCost')) $('qCost').value=existingItem.unitCost||'';
+    if($('qPrice')) $('qPrice').value=existingItem.salePrice||'';
+
+    if($('quantityMsg')) msg($('quantityMsg'),`מק״ט קיים זוהה: ${itemDisplayName(existingItem)}. הזן כמות להוספה ועדכן מחיר/עלות אם צריך.`,'ok');
+  }
+
+  function handleQuantitySkuChanged(clearWhenNotFound=false){
+    const sku=clean($('qSku')?.value||'');
+    if(!sku){
+      applyExistingSkuState(null);
+      return;
+    }
+    const existing=findExistingQuantitySku(sku);
+    if(existing){
+      applyExistingSkuState(existing);
+    }else if(clearWhenNotFound){
+      applyExistingSkuState(null);
+    }else{
+      ['qName','qCat','qBrand','qModel','qSupplier'].forEach(id=>setLockedInput(id,false));
+    }
+  }
+
+  async function addQuantity(){try{
+    const rawQty=clean($('qQty').value);
+    if(!rawQty||!Number.isFinite(Number(rawQty))||Number(rawQty)<0)return msg($('quantityMsg'),'חובה להזין כמות מספרית תקינה');
+
+    const sku=clean($('qSku').value);
+    const existing=findExistingQuantitySku(sku);
+
+    const data={
+      trackingType:'quantity',
+      sku,
+      name:clean($('qName').value),
+      category:clean($('qCat').value),
+      brand:clean($('qBrand').value),
+      model:clean($('qModel').value),
+      quantity:Number($('qQty').value||0),
+      lowStockAlert:Number($('qLow').value||0),
+      supplier:clean($('qSupplier').value),
+      unitCost:Number($('qCost').value||0),
+      salePrice:Number($('qPrice').value||0),
+      status:'active',
+      notes:clean($('qNotes').value),
+      createdBy:currentUser.uid,
+      createdAt:serverTimestamp(),
+      updatedAt:serverTimestamp()
+    };
+
+    if(!data.name&&!data.sku)return msg($('quantityMsg'),'חובה שם פריט או מק״ט');
+
+    // Existing SKU = update stock instead of duplicate item.
+    if(existing){
+      const beforeQty=Number(existing.quantity||0);
+      const afterQty=beforeQty+data.quantity;
+
+      await updateDoc(doc(db,'items',existing.id),{
+        quantity:afterQty,
+        unitCost:data.unitCost,
+        salePrice:data.salePrice,
+        updatedAt:serverTimestamp()
+      });
+
+      await addDoc(collection(db,'stockMovements'),{
+        type:'restock',
+        itemId:existing.id,
+        itemName:existing.name||existing.sku||'פריט',
+        quantityChange:data.quantity,
+        quantityBefore:beforeQty,
+        quantityAfter:afterQty,
+        unitCost:data.unitCost,
+        salePrice:data.salePrice,
+        createdBy:currentUser.uid,
+        createdByName:currentProfile.fullName,
+        createdAt:serverTimestamp(),
+        notes:'עדכון מלאי לפי מק״ט קיים'
+      });
+
+      await activity('RESTOCK_EXISTING_SKU',{
+        sku:data.sku,
+        quantityAdded:data.quantity,
+        quantityBefore:beforeQty,
+        quantityAfter:afterQty
+      });
+
+      msg($('quantityMsg'),'המלאי עודכן בהצלחה לפי מק״ט קיים','ok');
+      await loadData();
+      renderApp();
+      return;
+    }
+
+    await addDoc(collection(db,'items'),data);
+    await activity('ADD_QUANTITY_ITEM',data);
+    msg($('quantityMsg'),'הפריט נוסף בהצלחה','ok');
+    await loadData();
+    renderApp()
+  }catch(e){err(e,'add quantity failed');msg($('quantityMsg'),'שמירה נכשלה')}}
   function checkImei(){const q=clean($('imeiInput').value).toLowerCase();const found=items.find(i=>i.trackingType==='serial'&&[(i.imei||''),(i.serialNumber||'')].some(v=>String(v).toLowerCase()===q));$('imeiResult').innerHTML=found?itemCard(found):'<div class="card"><p class="muted">המכשיר לא נמצא במלאי.</p></div>';bindDelete()}
   async function makeSale(){try{let selectedSaleId=$('saleItem').value; let selectedSerialGroupKey=selectedSaleId.startsWith('group:')?selectedSaleId.replace('group:',''):''; let item=selectedSerialGroupKey?items.find(i=>i.trackingType==='serial'&&i.status==='in_stock'&&serialGroupKey(i)===selectedSerialGroupKey):items.find(i=>i.id===selectedSaleId); if(!item)return msg($('saleMsg'),'חובה לבחור פריט מהרשימה לפני שמירה'); let qty=Number($('saleQty').value||1), price=Number($('salePrice').value||item.salePrice||0); const saleSerial=clean($('saleSerialConfirm')?.value||''); if(!Number.isFinite(qty)||qty<1)return msg($('saleMsg'),'חובה להזין כמות מספרית תקינה'); if(!Number.isFinite(price)||price<0)return msg($('saleMsg'),'חובה להזין מחיר מכירה תקין'); if(item.trackingType==='serial'){qty=1; if(!saleSerial)return msg($('saleMsg'),'במכירת פריט סידורי חובה לבחור או להכניס IMEI / Serial'); const saleSerialError=serialDigitsError(saleSerial,'IMEI / Serial למכירה'); if(saleSerialError)return msg($('saleMsg'),saleSerialError); const matchingSerialItem=items.find(i=>i.trackingType==='serial'&&i.status==='in_stock'&&(selectedSerialGroupKey?serialGroupKey(i)===selectedSerialGroupKey:sameSerialModel(i,item))&&[i.imei,i.serialNumber].filter(Boolean).map(v=>String(v).trim().toLowerCase()).includes(saleSerial.toLowerCase())); if(!matchingSerialItem)return msg($('saleMsg'),'ה־IMEI / Serial שהוכנס לא נמצא ברשימת הסיריאלים הזמינים של המכשיר שנבחר'); item=matchingSerialItem;} if(item.trackingType==='quantity'&&qty>Number(item.quantity||0))return msg($('saleMsg'),`אין מספיק כמות במלאי. קיים: ${Number(item.quantity||0)}`); const oldQty=Number(item.quantity||0); const newQty=item.trackingType==='quantity'?oldQty-qty:oldQty; const sale={itemId:item.id,itemName:item.name||item.model||item.sku,itemTrackingType:item.trackingType,saleSerial:item.trackingType==='serial'?saleSerial:'',imei:item.trackingType==='serial'?(item.imei||''):'',serialNumber:item.trackingType==='serial'?(item.serialNumber||''):'',quantity:qty,salePrice:price,unitCost:item.trackingType==='serial'?Number(item.purchaseCost||0):Number(item.unitCost||0),profit:price-((item.trackingType==='serial'?Number(item.purchaseCost||0):Number(item.unitCost||0))*qty),customerName:clean($('saleCustomer').value),customerPhone:clean($('salePhone').value),notes:clean($('saleNotes').value),soldBy:currentUser.uid,soldByName:currentProfile.fullName,createdAt:serverTimestamp()}; const saleRef=await addDoc(collection(db,'sales'),sale); if(item.trackingType==='serial') await updateDoc(doc(db,'items',item.id),{status:'sold',soldAt:serverTimestamp(),soldSerial:saleSerial,updatedAt:serverTimestamp()}); else {await updateDoc(doc(db,'items',item.id),{quantity:newQty,updatedAt:serverTimestamp()}); await addDoc(collection(db,'stockMovements'),{type:'sale',itemId:item.id,itemName:item.name||item.sku||'פריט',saleId:saleRef.id,quantityChange:-qty,quantityBefore:oldQty,quantityAfter:newQty,unitCost:Number(item.unitCost||0),salePrice:price,createdBy:currentUser.uid,createdByName:currentProfile.fullName,createdAt:serverTimestamp(),notes:clean($('saleNotes').value)});} await activity('SALE_CREATED',sale); const saleWarn=item.trackingType==='serial'?serialLengthWarning(saleSerial,'IMEI / Serial למכירה'):''; msg($('saleMsg'),'המכירה נשמרה בהצלחה'+(saleWarn?' — שים לב: '+saleWarn:''),'ok');await loadData();renderApp()}catch(e){err(e,'sale failed');msg($('saleMsg'),'שמירת מכירה נכשלה')}}
   async function addWorker(){try{const fullName=clean($('wName').value),email=clean($('wEmail').value),pass=clean($('wPass').value),role=$('wRole').value;if(!fullName||!email||!pass)return msg($('workerMsg'),'יש למלא שם, אימייל וסיסמה'); const cred=await createUserWithEmailAndPassword(workerCreatorAuth,email,pass); await signOut(workerCreatorAuth); const permissions={canViewCost:role==='admin',canViewProfit:role==='admin',canSell:true,canAddStock:role==='admin',canEditStock:role==='admin',canDeleteStock:role==='admin',canManageWorkers:role==='admin',canViewReports:role==='admin',canExportData:role==='admin'};await setDoc(doc(db,'users',cred.user.uid),{uid:cred.user.uid,fullName,email,role,active:true,permissions,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});msg($('workerMsg'),'העובד נוצר בהצלחה. נשארת מחובר כאדמין.','ok');log('INFO','Worker created with secondary auth; admin session preserved',{email});}catch(e){err(e,'add worker failed');msg($('workerMsg'),'יצירת עובד נכשלה: '+(e.code||e.message))}}
