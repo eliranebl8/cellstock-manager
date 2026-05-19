@@ -6,9 +6,13 @@
   <title>CellStock Manager</title>
   <!--
     CellStock Manager
-    Version: 1.1.4
+    Version: 1.1.5
 
     CHANGELOG:
+    - V1.1.5
+      * Price update now keeps the existing purchase cost or sale price when the matching new-price field is left empty.
+      * Empty price fields no longer block saving, as long as at least one price actually changes.
+
     - V1.1.4
       * Quick sale now supports quantity inventory as real stock: choose quantity item, enter quantity, validate available stock, decrease inventory and write stockMovements.
 
@@ -71,6 +75,21 @@
       --bg:#0b1220;--panel:#111827;--panel2:#172033;--card:#101827;--muted:#94a3b8;--text:#f8fafc;
       --primary:#2563eb;--primary2:#60a5fa;--good:#10b981;--bad:#ef4444;--warn:#f59e0b;
       --border:rgba(255,255,255,.09);--shadow:0 14px 40px rgba(0,0,0,.35);--radius:22px;
+    }
+
+    body.lightMode{
+      --bg:#eef2ff;
+      --panel:#ffffff;
+      --panel2:#f8fafc;
+      --card:#ffffff;
+      --muted:#475569;
+      --text:#0f172a;
+      --border:rgba(15,23,42,.12);
+      --shadow:0 14px 40px rgba(15,23,42,.10);
+      background:
+        radial-gradient(circle at 10% 5%,rgba(37,99,235,.10),transparent 32%),
+        radial-gradient(circle at 90% 95%,rgba(16,185,129,.08),transparent 30%),
+        #eef2ff;
     }
     *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,'Segoe UI',sans-serif}
     body{min-height:100vh;background:radial-gradient(circle at 10% 5%,rgba(37,99,235,.28),transparent 32%),radial-gradient(circle at 90% 95%,rgba(16,185,129,.16),transparent 30%),var(--bg);color:var(--text)}
@@ -135,7 +154,7 @@
 <main id="appPage" class="app hidden">
   <div class="topbar">
     <div><div class="brandTitle">CellStock Manager</div><div id="userLine" class="chip">טוען משתמש...</div></div>
-    <div class="actions"><button id="refreshBtn" class="btn btnSmall btnGhost">רענון</button><button id="logoutBtn" class="btn btnSmall btnBad">התנתק</button></div>
+    <div class="actions"><button id="themeToggleBtn" class="btn btnSmall btnGhost">☀️ מצב בהיר</button><button id="refreshBtn" class="btn btnSmall btnGhost">רענון</button><button id="logoutBtn" class="btn btnSmall btnBad">התנתק</button></div>
   </div>
   <nav id="tabs" class="tabs"></nav>
   <section id="view"></section>
@@ -212,7 +231,7 @@
 
 <script type="module">
   const APP_NAME='CellStock Manager';
-  const APP_VERSION='1.1.4';
+  const APP_VERSION='1.1.6';
   document.querySelectorAll('[data-version]').forEach(el=>el.textContent=APP_VERSION);
 
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
@@ -226,6 +245,24 @@
   const workerCreatorApp=initializeApp(firebaseConfig,'workerCreatorApp');
   const workerCreatorAuth=getAuth(workerCreatorApp);
   let currentUser=null,currentProfile=null,items=[],users=[],sales=[],activeTab='dashboard';
+
+  // V1.1.6: local-only dark/light mode persistence.
+  const THEME_STORAGE_KEY='cellstock_theme_mode';
+
+  function applyTheme(mode){
+    const light=mode==='light';
+    document.body.classList.toggle('lightMode',light);
+    const btn=document.getElementById('themeToggleBtn');
+    if(btn){
+      btn.textContent=light?'🌙 מצב כהה':'☀️ מצב בהיר';
+    }
+    localStorage.setItem(THEME_STORAGE_KEY,light?'light':'dark');
+  }
+
+  function initTheme(){
+    const saved=localStorage.getItem(THEME_STORAGE_KEY)||'dark';
+    applyTheme(saved);
+  }
 
   const $=id=>document.getElementById(id);
   const screens={loader:$('loader'),login:$('loginPage'),setup:$('setupPage'),app:$('appPage')};
@@ -309,6 +346,10 @@
   }catch(e){err(e,'create first admin failed');msg($('setupMsg'),'יצירת אדמין נכשלה: '+(e.code||e.message));}}
 
   $('logoutBtn').onclick=async()=>{await signOut(auth);currentUser=null;currentProfile=null;show('login')};
+  $('themeToggleBtn').onclick=()=>{
+    const isLight=document.body.classList.contains('lightMode');
+    applyTheme(isLight?'dark':'light');
+  };
   $('refreshBtn').onclick=async()=>{await loadData();renderApp()};
   $('debugToggle').onclick=()=>$('debugPanel').classList.toggle('hidden'); $('closeDebug').onclick=()=>$('debugPanel').classList.add('hidden'); $('clearDebug').onclick=()=>debugBody.textContent=''; $('whatsNewToggle').onclick=()=>{activeTab='changelog';renderApp();window.scrollTo({top:0,behavior:'smooth'});};
   $('forgotPasswordBtn').onclick=openPasswordResetModal;
@@ -498,16 +539,20 @@
       $('priceModalMsg').className='msg';
       const item=items.find(i=>i.id===currentPriceItemId);
       if(!item)return msg($('priceModalMsg'),'הפריט לא נמצא');
+
       const rawCost=clean($('priceNewCostValue').value);
       const rawSale=clean($('priceNewSaleValue').value);
-      if(rawCost===''||!Number.isFinite(Number(rawCost))||Number(rawCost)<0)return msg($('priceModalMsg'),'חובה להזין מחיר עלות מספרי תקין');
-      if(rawSale===''||!Number.isFinite(Number(rawSale))||Number(rawSale)<0)return msg($('priceModalMsg'),'חובה להזין מחיר מכירה מספרי תקין');
-
       const oldCost=itemCostValue(item);
       const oldSalePrice=Number(item.salePrice||0);
-      const newCost=Number(rawCost);
-      const newSalePrice=Number(rawSale);
-      if(oldCost===newCost && oldSalePrice===newSalePrice)return msg($('priceModalMsg'),'מחיר העלות ומחיר המכירה זהים למחירים הנוכחיים');
+
+      // V1.1.5: Leaving a new-price field empty keeps the existing value instead of blocking the save.
+      // If a field is filled, it still must be a valid non-negative number.
+      if(rawCost!=='' && (!Number.isFinite(Number(rawCost))||Number(rawCost)<0))return msg($('priceModalMsg'),'מחיר עלות חדש חייב להיות מספר תקין או להישאר ריק');
+      if(rawSale!=='' && (!Number.isFinite(Number(rawSale))||Number(rawSale)<0))return msg($('priceModalMsg'),'מחיר מכירה חדש חייב להיות מספר תקין או להישאר ריק');
+
+      const newCost=rawCost==='' ? oldCost : Number(rawCost);
+      const newSalePrice=rawSale==='' ? oldSalePrice : Number(rawSale);
+      if(oldCost===newCost && oldSalePrice===newSalePrice)return msg($('priceModalMsg'),'לא הוזן שינוי חדש במחיר העלות או במחיר המכירה');
 
       const history=Array.isArray(item.priceHistory)?item.priceHistory.slice():[];
       history.push({
@@ -534,7 +579,7 @@
 
       await updateDoc(doc(db,'items',item.id),updateData);
       await activity('PRICE_UPDATED',{id:item.id,itemName:itemDisplayName(item),oldCost,newCost,oldSalePrice,newSalePrice});
-      msg($('priceModalMsg'),'מחיר העלות ומחיר המכירה עודכנו בהצלחה','ok');
+      msg($('priceModalMsg'),'המחירים עודכנו בהצלחה','ok');
       await loadData();
       setTimeout(()=>{closePriceModal();renderApp();},500);
     }catch(e){err(e,'price update failed');msg($('priceModalMsg'),'עדכון מחיר נכשל')}
@@ -583,7 +628,7 @@
   function workers(){if(!isAdmin())return '<div class="card">אין הרשאה</div>';return `<h2 class="sectionTitle">עובדים והרשאות</h2><div class="card"><h3 class="mb12">הוספת עובד</h3><p class="muted mb12">יצירת עובד משתמשת בחיבור משני כדי להשאיר אותך מחובר כאדמין.</p><div class="row"><div class="field"><label>שם מלא</label><input id="wName"></div><div class="field"><label>אימייל</label><input id="wEmail" type="email"></div><div class="field"><label>סיסמה</label><input id="wPass" type="password"></div><div class="field"><label>תפקיד</label><select id="wRole"><option value="worker">עובד</option><option value="admin">אדמין</option></select></div></div><button id="addWorkerBtn" class="btn btnGood">צור עובד</button><div id="workerMsg" class="msg"></div></div><div class="card mt16"><h3 class="mb12">רשימת עובדים</h3><div class="list">${users.map(u=>`<div class="item"><div class="itemHead"><div><b>${u.fullName||'-'}</b><div class="muted">${u.email||''}</div></div><span class="status ${u.active===false?'bad':'good'}">${u.role==='admin'?'אדמין':'עובד'} • ${u.active===false?'חסום':'פעיל'}</span></div><div class="actions"><button class="btn btnSmall btnGhost toggleUser" data-id="${u.uid||u.id}" data-active="${u.active!==false}">${u.active===false?'הפעל':'חסום'}</button><button class="btn btnSmall btnGhost roleUser" data-id="${u.uid||u.id}" data-role="${u.role}">${u.role==='admin'?'הפוך לעובד':'הפוך לאדמין'}</button></div></div>`).join('')}</div></div>`}
   function reports(){return `<h2 class="sectionTitle">דוחות</h2><div class="grid"><div class="card"><h3>מכירות</h3><div class="statNum">${sales.length}</div></div><div class="card"><h3>סה״כ הכנסות</h3><div class="statNum">${money(sales.reduce((s,x)=>s+Number(x.salePrice||0),0))}</div></div><div class="card"><h3>מלאי נמוך</h3><div class="statNum">${items.filter(i=>i.trackingType==='quantity'&&(Number(i.quantity)||0)<=(Number(i.lowStockAlert)||0)).length}</div></div></div>`}
   function backup(){return `<h2 class="sectionTitle">גיבוי ושחזור</h2><div class="card"><p class="muted mb12">ייצוא ושחזור בסיסי ל־JSON.</p><div class="actions"><button id="exportBtn" class="btn btnGood">ייצוא JSON</button><label class="btn btnGhost">ייבוא JSON<input id="importFile" type="file" accept="application/json" class="hidden"></label></div><div id="backupMsg" class="msg"></div></div>`}
-  function changelog(){return `<h2 class="sectionTitle">מה חדש</h2><div class="card"><h3 class="mb12">Version ${APP_VERSION}</h3><ul style="padding-right:20px;line-height:1.9;color:#cbd5e1"><li><b>V1.1.4</b> — מכירה מהירה תומכת עכשיו גם בפריט כמותי כמלאי אמיתי: בחירת פריט, כמות, בדיקת כמות קיימת, הורדה מהמלאי ורישום תנועת מלאי.</li><li><b>V1.1.3</b> — עובד רגיל יכול לצפות במחיר קנייה, מחיר מכירה והיסטוריית מחירים, אך ללא אפשרות שינוי או עריכה.</li><li><b>V1.1.2</b> — חלון שינוי מחיר נפתח עכשיו עם שדות מחיר עלות חדש ומחיר מכירה חדש ריקים, כדי למנוע שמירה בטעות של המחיר הקיים.</li><li><b>V1.1.1</b> — IMEI/Serial נשאר חובה ספרות בלבד, אבל אורך 15 ספרות הוא הערה בלבד ולא חוסם שמירה.</li><li><b>V1.1.0</b> — שינוי מחיר שודרג לעדכון כפול: מחיר עלות ומחיר מכירה, עם היסטוריית לפני/אחרי לכל אחד מהם.</li><li><b>V1.0.10</b> — נוספו סימון פריט כפעיל/לא פעיל, שינוי מחיר עם היסטוריית מחירים לכל מוצר, והוחלפה הודעת המחיקה במודאל יפה עם כן/לא.</li><li><b>V1.0.9</b> — הוסתרו זמנית כפתורי מה חדש ולוג שגיאות מהמסך, והחיפוש שודרג לסינון לפי סוג מלאי, מותג, דגם, קטגוריה, סטטוס וטקסט חופשי עם הצעות חכמות.</li><li><b>V1.0.8</b> — נוסף כפתור שכחתי סיסמה במסך הכניסה, עם שליחת מייל איפוס סיסמה דרך Firebase Authentication.</li><li><b>V1.0.7</b> — מסך איפוס הוקטן ופושט: 10 לחיצות על הגרסה, סיסמה, אישור כן/לא ואיפוס.</li><li><b>V1.0.6</b> — נוסף איפוס מערכת מוסתר דרך 10 לחיצות על מספר הגרסה, עם בדיקת סיסמה לפי Hash בלבד ואישור מחיקה מפורש.</li><li>האיפוס מוחק את כל אוספי Firestore של המערכת ומנסה למחוק גם את משתמש האדמין המחובר מ־Firebase Authentication.</li><li><b>V1.0.5</b> — שדה כמות סידורית מתחיל ריק, חובה להזין מספר תקין, ושדה IMEI מוצג רק אחרי כמות תקינה.</li><li>רשימות מותג/דגם/קטגוריה/ספק כבר לא נפתחות בפוקוס ריק; הן נפתחות רק אחרי הקלדה ומציגות תוצאות מסוננות בלבד.</li><li><b>V1.0.4</b> — נוספה בדיקת IMEI ראשונית: ספרות בלבד ובדיקת אורך.</li><li>נוספו רשימות חכמות למותג, דגם, קטגוריה וספק מתוך מה שכבר נשמר במלאי. ערך חדש שתקליד יופיע בפעמים הבאות.</li><li><b>V1.0.3</b> — הוספת כמה מכשירים סידוריים מאותו דגם בפעם אחת, עם שדה IMEI/Serial נפרד לכל יחידה.</li><li>כאשר הכמות היא 1 מוצג שדה סידורי יחיד; כאשר הכמות גדולה מ־1 מוצגים בדיוק מספר השדות לפי הכמות.</li><li>נוספה בדיקת כפילות: אי אפשר לשמור IMEI/Serial שכבר קיים במלאי או שחוזר על עצמו באותה הכנסת מלאי.</li><li><b>V1.0.2</b> — טקסט כניסה ראשון מקצועי יותר וכפתור מה חדש מהיר בתחתית.</li><li><b>V1.0.1</b> — כפתור העתקת לוג שגיאות, אימות IMEI/Serial במכירה סידורית, ויצירת עובד בלי להעביר אותך מחשבון האדמין.</li><li><b>V1.0.0</b> — בנייה נקייה: Auth, אדמין ראשון, מלאי סידורי, מלאי כמותי, חיפוש, מכירה, עובדים, דוחות וגיבוי.</li></ul></div>`}
+  function changelog(){return `<h2 class="sectionTitle">מה חדש</h2><div class="card"><h3 class="mb12">Version ${APP_VERSION}</h3><ul style="padding-right:20px;line-height:1.9;color:#cbd5e1"><li><b>V1.1.5</b> — עדכון מחיר מאפשר להשאיר את מחיר הקנייה או מחיר המכירה ריק, והמערכת תשאיר באותו שדה את המחיר הקיים במקום לחייב הזנה.</li><li><b>V1.1.4</b> — מכירה מהירה תומכת עכשיו גם בפריט כמותי כמלאי אמיתי: בחירת פריט, כמות, בדיקת כמות קיימת, הורדה מהמלאי ורישום תנועת מלאי.</li><li><b>V1.1.3</b> — עובד רגיל יכול לצפות במחיר קנייה, מחיר מכירה והיסטוריית מחירים, אך ללא אפשרות שינוי או עריכה.</li><li><b>V1.1.2</b> — חלון שינוי מחיר נפתח עכשיו עם שדות מחיר עלות חדש ומחיר מכירה חדש ריקים, כדי למנוע שמירה בטעות של המחיר הקיים.</li><li><b>V1.1.1</b> — IMEI/Serial נשאר חובה ספרות בלבד, אבל אורך 15 ספרות הוא הערה בלבד ולא חוסם שמירה.</li><li><b>V1.1.0</b> — שינוי מחיר שודרג לעדכון כפול: מחיר עלות ומחיר מכירה, עם היסטוריית לפני/אחרי לכל אחד מהם.</li><li><b>V1.0.10</b> — נוספו סימון פריט כפעיל/לא פעיל, שינוי מחיר עם היסטוריית מחירים לכל מוצר, והוחלפה הודעת המחיקה במודאל יפה עם כן/לא.</li><li><b>V1.0.9</b> — הוסתרו זמנית כפתורי מה חדש ולוג שגיאות מהמסך, והחיפוש שודרג לסינון לפי סוג מלאי, מותג, דגם, קטגוריה, סטטוס וטקסט חופשי עם הצעות חכמות.</li><li><b>V1.0.8</b> — נוסף כפתור שכחתי סיסמה במסך הכניסה, עם שליחת מייל איפוס סיסמה דרך Firebase Authentication.</li><li><b>V1.0.7</b> — מסך איפוס הוקטן ופושט: 10 לחיצות על הגרסה, סיסמה, אישור כן/לא ואיפוס.</li><li><b>V1.0.6</b> — נוסף איפוס מערכת מוסתר דרך 10 לחיצות על מספר הגרסה, עם בדיקת סיסמה לפי Hash בלבד ואישור מחיקה מפורש.</li><li>האיפוס מוחק את כל אוספי Firestore של המערכת ומנסה למחוק גם את משתמש האדמין המחובר מ־Firebase Authentication.</li><li><b>V1.0.5</b> — שדה כמות סידורית מתחיל ריק, חובה להזין מספר תקין, ושדה IMEI מוצג רק אחרי כמות תקינה.</li><li>רשימות מותג/דגם/קטגוריה/ספק כבר לא נפתחות בפוקוס ריק; הן נפתחות רק אחרי הקלדה ומציגות תוצאות מסוננות בלבד.</li><li><b>V1.0.4</b> — נוספה בדיקת IMEI ראשונית: ספרות בלבד ובדיקת אורך.</li><li>נוספו רשימות חכמות למותג, דגם, קטגוריה וספק מתוך מה שכבר נשמר במלאי. ערך חדש שתקליד יופיע בפעמים הבאות.</li><li><b>V1.0.3</b> — הוספת כמה מכשירים סידוריים מאותו דגם בפעם אחת, עם שדה IMEI/Serial נפרד לכל יחידה.</li><li>כאשר הכמות היא 1 מוצג שדה סידורי יחיד; כאשר הכמות גדולה מ־1 מוצגים בדיוק מספר השדות לפי הכמות.</li><li>נוספה בדיקת כפילות: אי אפשר לשמור IMEI/Serial שכבר קיים במלאי או שחוזר על עצמו באותה הכנסת מלאי.</li><li><b>V1.0.2</b> — טקסט כניסה ראשון מקצועי יותר וכפתור מה חדש מהיר בתחתית.</li><li><b>V1.0.1</b> — כפתור העתקת לוג שגיאות, אימות IMEI/Serial במכירה סידורית, ויצירת עובד בלי להעביר אותך מחשבון האדמין.</li><li><b>V1.0.0</b> — בנייה נקייה: Auth, אדמין ראשון, מלאי סידורי, מלאי כמותי, חיפוש, מכירה, עובדים, דוחות וגיבוי.</li></ul></div>`}
 
   function itemCard(i){
     const title=i.trackingType==='serial'?`${i.brand||''} ${i.model||''} ${i.storage||''}`.trim():i.name||i.sku||'פריט';
@@ -773,6 +818,8 @@
   async function roleUser(id,role){try{const newRole=role==='admin'?'worker':'admin';const adminPerm=newRole==='admin';await updateDoc(doc(db,'users',id),{role:newRole,permissions:{canViewCost:adminPerm,canViewProfit:adminPerm,canSell:true,canAddStock:adminPerm,canEditStock:adminPerm,canDeleteStock:adminPerm,canManageWorkers:adminPerm,canViewReports:adminPerm,canExportData:adminPerm},updatedAt:serverTimestamp()});await loadData();renderApp()}catch(e){err(e,'role user failed')}}
   function exportJson(){const data={app:APP_NAME,version:APP_VERSION,exportedAt:new Date().toISOString(),items,users,sales};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`cellstock_backup_${APP_VERSION}.json`;a.click();URL.revokeObjectURL(a.href)}
   async function importJson(ev){try{const file=ev.target.files[0];if(!file)return;const txt=await file.text();const data=JSON.parse(txt);if(!confirm('לייבא נתונים? פעולה זו מוסיפה מסמכים ולא מוחקת קיימים.'))return;for(const i of data.items||[]){const copy={...i};delete copy.id;await addDoc(collection(db,'items'),copy)}msg($('backupMsg'),'ייבוא בסיסי הסתיים','ok');await loadData();renderApp()}catch(e){err(e,'import failed');msg($('backupMsg'),'ייבוא נכשל')}}
+
+  initTheme();
 
   log('INFO',`${APP_NAME} ${APP_VERSION} loaded`,{domain:location.hostname,url:location.href});
 </script>
