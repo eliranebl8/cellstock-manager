@@ -91,6 +91,67 @@
         radial-gradient(circle at 90% 95%,rgba(16,185,129,.08),transparent 30%),
         #eef2ff;
     }
+
+    /* V1.1.10: make light mode fully readable across cards, lists, menus and login/top areas. */
+    body.lightMode .loginCard,
+    body.lightMode .topbar,
+    body.lightMode .card,
+    body.lightMode .item,
+    body.lightMode .modalCard,
+    body.lightMode .suggestMenu,
+    body.lightMode .debugPanel,
+    body.lightMode .progressBox{
+      background:rgba(255,255,255,.94);
+      color:#0f172a;
+      border-color:rgba(15,23,42,.14);
+    }
+    body.lightMode input,
+    body.lightMode select,
+    body.lightMode textarea{
+      background:#ffffff;
+      color:#0f172a;
+      border-color:rgba(15,23,42,.18);
+    }
+    body.lightMode option{
+      background:#ffffff;
+      color:#0f172a;
+    }
+    body.lightMode .suggestMenu button{
+      color:#0f172a;
+    }
+    body.lightMode .suggestMenu button:hover{
+      background:rgba(37,99,235,.10);
+    }
+    body.lightMode .muted,
+    body.lightMode label,
+    body.lightMode .miniHint,
+    body.lightMode .saleSearchMenu button .mutedLine,
+    body.lightMode .footerVer{
+      color:#475569;
+    }
+    body.lightMode .loginNotice{
+      background:#ffffff;
+      color:#0f172a;
+      border-color:rgba(15,23,42,.14);
+    }
+    body.lightMode .topbar,
+    body.lightMode .topbar *,
+    body.lightMode #userLine,
+    body.lightMode .chip{
+      color:#0f172a;
+    }
+    body.lightMode #userLine{
+      background:rgba(37,99,235,.10);
+    }
+    body.lightMode .kv,
+    body.lightMode .kv b,
+    body.lightMode .item b,
+    body.lightMode h1,
+    body.lightMode h2,
+    body.lightMode h3,
+    body.lightMode .brandTitle{
+      color:#0f172a;
+    }
     *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,'Segoe UI',sans-serif}
     body{min-height:100vh;background:radial-gradient(circle at 10% 5%,rgba(37,99,235,.28),transparent 32%),radial-gradient(circle at 90% 95%,rgba(16,185,129,.16),transparent 30%),var(--bg);color:var(--text)}
     button,input,select,textarea{font-family:inherit} .hidden{display:none!important}
@@ -109,10 +170,10 @@
     .btn:hover{transform:translateY(-1px)}.btnPrimary{background:linear-gradient(135deg,var(--primary),var(--primary2));width:100%}.btnGood{background:linear-gradient(135deg,#059669,#34d399)}.btnBad{background:rgba(239,68,68,.18);color:#fecaca}.btnSmall{padding:9px 12px;border-radius:12px;font-size:13px}.btnGhost{background:rgba(255,255,255,.08)}
     .msg{display:none;padding:12px;border-radius:14px;font-size:14px;text-align:center;margin-top:12px}.msg.err{display:block;background:rgba(239,68,68,.13);border:1px solid rgba(239,68,68,.25);color:#fecaca}.msg.ok{display:block;background:rgba(16,185,129,.13);border:1px solid rgba(16,185,129,.25);color:#bbf7d0}
     .app{min-height:100vh;padding:14px;max-width:1280px;margin:auto}.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:22px;padding:15px;margin-bottom:14px;position:sticky;top:8px;z-index:30;backdrop-filter:blur(12px)}
-    .brandTitle{font-size:22px;font-weight:900}.chip{display:inline-flex;padding:5px 10px;border-radius:999px;background:rgba(37,99,235,.16);color:#bfdbfe;font-size:12px;margin-top:5px}
+    .brandTitle{font-size:22px;font-weight:900}.chip{display:inline-flex;padding:5px 10px;border-radius:999px;background:rgba(37,99,235,.16);color:#bfdbfe;font-size:12px;margin-top:5px}.loginNotice{position:fixed;top:84px;left:14px;right:14px;z-index:90;max-width:620px;margin:auto;background:rgba(15,23,42,.94);border:1px solid var(--border);border-radius:18px;padding:12px 14px;text-align:center;box-shadow:var(--shadow);color:#e0f2fe;font-size:14px;animation:up .25s ease}
     .tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 12px;margin-bottom:10px}.tab{white-space:nowrap;border:none;background:rgba(255,255,255,.07);color:var(--text);padding:11px 14px;border-radius:999px;cursor:pointer}.tab.active{background:linear-gradient(135deg,var(--primary),var(--primary2));font-weight:900}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.card{background:rgba(255,255,255,.055);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:0 10px 25px rgba(0,0,0,.12)}
-    .statNum{font-size:28px;font-weight:900;margin:8px 0}.sectionTitle{font-size:20px;margin:4px 0 14px}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.list{display:grid;gap:10px;max-height:520px;overflow:auto;padding-left:3px}.item{background:rgba(15,23,42,.58);border:1px solid var(--border);border-radius:18px;padding:13px}.itemHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.status{font-size:12px;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.08);color:#dbeafe}.status.good{background:rgba(16,185,129,.15);color:#bbf7d0}.status.bad{background:rgba(239,68,68,.15);color:#fecaca}.status.warn{background:rgba(245,158,11,.15);color:#fde68a}.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px;color:#cbd5e1;font-size:13px}.kv b{color:#fff}.footerVer{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}.debugPanel{position:fixed;left:10px;right:10px;bottom:10px;z-index:50;background:#020617;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);max-height:44vh;display:flex;flex-direction:column}.debugHead{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border)}.debugBody{overflow:auto;padding:10px;font-family:monospace;font-size:12px;white-space:pre-wrap;direction:ltr;text-align:left;color:#d1d5db}.debugToggle{position:fixed;bottom:12px;left:12px;z-index:49;border:none;border-radius:999px;padding:10px 13px;background:#111827;color:#fff;border:1px solid var(--border)}.whatsNewToggle{position:fixed;bottom:12px;right:12px;z-index:49;border:none;border-radius:999px;padding:10px 13px;background:#111827;color:#fff;border:1px solid var(--border)}.serialInputsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.miniHint{font-size:12px;color:var(--muted);margin-top:-6px;margin-bottom:10px}.suggestBox{position:relative}.suggestMenu{position:absolute;right:0;left:0;top:100%;z-index:80;background:#020617;border:1px solid var(--border);border-radius:14px;margin-top:5px;max-height:180px;overflow:auto;box-shadow:var(--shadow);display:none}.suggestMenu button{display:block;width:100%;text-align:right;background:transparent;color:#fff;border:none;padding:11px 12px;cursor:pointer}.suggestMenu button:hover{background:rgba(59,130,246,.18)}.hiddenInternal{display:none!important;visibility:hidden!important;pointer-events:none!important}
+    .statNum{font-size:28px;font-weight:900;margin:8px 0}.sectionTitle{font-size:20px;margin:4px 0 14px}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.list{display:grid;gap:10px;max-height:520px;overflow:auto;padding-left:3px}.item{background:rgba(15,23,42,.58);border:1px solid var(--border);border-radius:18px;padding:13px}.itemHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.status{font-size:12px;padding:4px 9px;border-radius:999px;background:rgba(255,255,255,.08);color:#dbeafe}.status.good{background:rgba(16,185,129,.15);color:#bbf7d0}.status.bad{background:rgba(239,68,68,.15);color:#fecaca}.status.warn{background:rgba(245,158,11,.15);color:#fde68a}.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:10px;color:#cbd5e1;font-size:13px}.kv b{color:#fff}.footerVer{text-align:center;color:var(--muted);font-size:12px;margin-top:20px}.debugPanel{position:fixed;left:10px;right:10px;bottom:10px;z-index:50;background:#020617;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);max-height:44vh;display:flex;flex-direction:column}.debugHead{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--border)}.debugBody{overflow:auto;padding:10px;font-family:monospace;font-size:12px;white-space:pre-wrap;direction:ltr;text-align:left;color:#d1d5db}.debugToggle{position:fixed;bottom:12px;left:12px;z-index:49;border:none;border-radius:999px;padding:10px 13px;background:#111827;color:#fff;border:1px solid var(--border)}.whatsNewToggle{position:fixed;bottom:12px;right:12px;z-index:49;border:none;border-radius:999px;padding:10px 13px;background:#111827;color:#fff;border:1px solid var(--border)}.serialInputsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.miniHint{font-size:12px;color:var(--muted);margin-top:-6px;margin-bottom:10px}.suggestBox{position:relative}.suggestMenu{position:absolute;right:0;left:0;top:100%;z-index:80;background:#020617;border:1px solid var(--border);border-radius:14px;margin-top:5px;max-height:180px;overflow:auto;box-shadow:var(--shadow);display:none}.suggestMenu button{display:block;width:100%;text-align:right;background:transparent;color:#fff;border:none;padding:11px 12px;cursor:pointer}.suggestMenu button:hover{background:rgba(59,130,246,.18)}.saleSearchMenu{max-height:240px}.saleSearchMenu button .mutedLine{display:block;color:var(--muted);font-size:12px;margin-top:3px}.hiddenInternal{display:none!important;visibility:hidden!important;pointer-events:none!important}
     .modalBackdrop{position:fixed;inset:0;z-index:120;background:rgba(2,6,23,.82);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(10px)}.modalCard{width:100%;max-width:520px;background:#0f172a;border:1px solid var(--border);border-radius:24px;padding:20px;box-shadow:var(--shadow)}.dangerBox{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.28);color:#fecaca;border-radius:16px;padding:12px;line-height:1.7;margin:12px 0}.confirmLine{display:flex;align-items:center;gap:10px;margin:12px 0;color:#cbd5e1}.confirmLine input{width:auto;min-width:18px;height:18px}.progressBox{font-family:monospace;direction:ltr;text-align:left;white-space:pre-wrap;max-height:180px;overflow:auto;background:#020617;border:1px solid var(--border);border-radius:14px;padding:10px;color:#d1d5db;font-size:12px;margin-top:12px}
     @media(max-width:640px){.topbar{align-items:flex-start}.brandTitle{font-size:18px}.topbar .actions{margin:0}.loginCard{padding:22px}.app{padding:10px}.card{padding:14px}}
   
@@ -160,6 +221,8 @@
   <section id="view"></section>
   <div class="footerVer">Version <span data-version></span></div>
 </main>
+
+<div id="loginNotice" class="loginNotice hidden"></div>
 
 <button id="debugToggle" class="debugToggle hiddenInternal" aria-hidden="true">לוג שגיאות</button>
 <button id="whatsNewToggle" class="whatsNewToggle hiddenInternal" aria-hidden="true">מה חדש</button>
@@ -231,7 +294,7 @@
 
 <script type="module">
   const APP_NAME='CellStock Manager';
-  const APP_VERSION='1.1.6';
+  const APP_VERSION='1.2.1';
   document.querySelectorAll('[data-version]').forEach(el=>el.textContent=APP_VERSION);
 
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
@@ -244,7 +307,7 @@
   // This prevents Firebase from switching the current logged-in admin to the newly-created worker.
   const workerCreatorApp=initializeApp(firebaseConfig,'workerCreatorApp');
   const workerCreatorAuth=getAuth(workerCreatorApp);
-  let currentUser=null,currentProfile=null,items=[],users=[],sales=[],activeTab='dashboard';
+  let currentUser=null,currentProfile=null,items=[],users=[],sales=[],activeTab='dashboard',inventoryMode='serial';
 
   // V1.1.6: local-only dark/light mode persistence.
   const THEME_STORAGE_KEY='cellstock_theme_mode';
@@ -267,7 +330,7 @@
   const $=id=>document.getElementById(id);
   const screens={loader:$('loader'),login:$('loginPage'),setup:$('setupPage'),app:$('appPage')};
   const debugBody=$('debugBody');
-  const tabs=[['dashboard','דשבורד'],['search','חיפוש מלאי'],['serial','מלאי סידורי'],['quantity','מלאי כמותי / מחירון חלקים'],['imei','בדיקת IMEI'],['sale','מכירה מהירה'],['workers','עובדים והרשאות'],['reports','דוחות'],['backup','גיבוי ושחזור']];
+  const tabs=[['dashboard','דשבורד'],['search','חיפוש מלאי'],['inventory','מלאי'],['imei','בדיקת IMEI'],['sale','מכירה מהירה'],['workers','עובדים והרשאות'],['backup','גיבוי ושחזור']];
   const RESET_PASSWORD_SHA256='5af1975db3673915fddad3137d96f9cfc2475a895dba5ed1df4ed6366ccbae46';
   const RESET_COLLECTIONS=['items','users','sales','stockMovements','activityLog','settings','changeLog'];
   let versionTapCount=0, versionTapTimer=null, resetRunning=false, pendingConfirmAction=null, currentPriceItemId=null;
@@ -280,14 +343,51 @@
   function msg(el,text,type='err'){el.textContent=text;el.className='msg '+type}
   function show(name){Object.values(screens).forEach(s=>s.classList.add('hidden'));screens[name].classList.remove('hidden')}
   function money(n){return (Number(n)||0).toLocaleString('he-IL')+' ₪'}
+  // V1.1.7: Display Firebase server timestamps in Israel time, without relying on local device timezone.
+  function formatIsraelDateTime(value){
+    try{
+      let date=null;
+      if(value?.toDate) date=value.toDate();
+      else if(value instanceof Date) date=value;
+      else if(value) date=new Date(value);
+      if(!date || Number.isNaN(date.getTime())) return 'אין תיעוד קודם';
+      return new Intl.DateTimeFormat('he-IL',{
+        timeZone:'Asia/Jerusalem',
+        year:'numeric',
+        month:'2-digit',
+        day:'2-digit',
+        hour:'2-digit',
+        minute:'2-digit',
+        second:'2-digit'
+      }).format(date);
+    }catch{
+      return 'אין תיעוד קודם';
+    }
+  }
   function can(p){return currentProfile?.role==='admin'||!!currentProfile?.permissions?.[p]}
   function isAdmin(){return currentProfile?.role==='admin'}
   function clean(v){return String(v||'').trim()}
   function escapeHtml(v){return clean(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
+  // V1.1.9: Central source for smart autocomplete values from inventory and sales history.
   function optionValues(field){
-    return [...new Set(items.map(i=>clean(i?.[field])).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'he'));
+    const vals=[];
+    const push=v=>{const c=clean(v); if(c) vals.push(c);};
+
+    items.forEach(i=>{
+      if(field==='serial') { push(i.imei); push(i.serialNumber); return; }
+      push(i?.[field]);
+    });
+
+    sales.forEach(s=>{
+      if(field==='customerName') push(s.customerName);
+      if(field==='customerPhone') push(s.customerPhone);
+      if(field==='saleNotes') push(s.notes);
+      if(field==='serial') { push(s.saleSerial); push(s.imei); push(s.serialNumber); }
+    });
+
+    return [...new Set(vals)].sort((a,b)=>a.localeCompare(b,'he'));
   }
-  // V1.0.5: custom suggestions replace browser datalist so lists open only after typing.
+  // V1.0.5 + V1.1.9: custom suggestions replace browser datalist and are now used across more typed fields.
   function suggestInput(id,field,placeholder=''){
     return `<div class="suggestBox"><input id="${id}" data-suggest="${field}" autocomplete="off" placeholder="${escapeHtml(placeholder)}"><div class="suggestMenu" id="${id}_suggestMenu"></div></div>`;
   }
@@ -318,12 +418,34 @@
     log('INFO','Data loaded',{items:items.length,users:users.length,sales:sales.length});
   }
   async function bootUser(user){
-    currentUser=user; const snap=await getDoc(doc(db,'users',user.uid));
+    currentUser=user;
+    const userRef=doc(db,'users',user.uid);
+    const snap=await getDoc(userRef);
     if(!snap.exists()){await signOut(auth);show('login');msg($('loginMsg'),'אין הרשאה למערכת. פנה לאדמין.');return}
     currentProfile={id:snap.id,...snap.data()};
     if(currentProfile.active===false){await signOut(auth);show('login');msg($('loginMsg'),'המשתמש חסום במערכת.');return}
+
+    // V1.1.7: Keep the previous login visible, then update the current login with Firebase server time.
+    const previousLogin=currentProfile.lastLoginAt||currentProfile.currentLoginAt||null;
+    currentProfile.previousLoginAt=previousLogin;
     $('userLine').textContent=`${currentProfile.fullName||user.email} • ${currentProfile.role==='admin'?'אדמין':'עובד'}`;
-    await loadData(); renderApp(); show('app'); await activity('LOGIN_SUCCESS',{email:user.email});
+
+    const notice=$('loginNotice');
+    if(notice){
+      notice.textContent=`התחברות אחרונה: ${formatIsraelDateTime(previousLogin)}`;
+      notice.classList.remove('hidden');
+      setTimeout(()=>notice.classList.add('hidden'),5200);
+    }
+
+    await updateDoc(userRef,{
+      previousLoginAt:previousLogin||null,
+      lastLoginAt:serverTimestamp(),
+      lastLoginEmail:user.email||'',
+      lastLoginUserAgent:navigator.userAgent||'',
+      updatedAt:serverTimestamp()
+    });
+
+    await loadData(); renderApp(); show('app'); await activity('LOGIN_SUCCESS',{email:user.email,lastLoginSource:'firebase_server_timestamp'});
   }
 
   onAuthStateChanged(auth,async user=>{try{screens.loader.classList.add('hidden'); if(user) await bootUser(user); else show('login')}catch(e){err(e,'auth state failed');show('login')}});
@@ -496,6 +618,50 @@
       : `${i.name||i.sku||'פריט'} ${i.brand||''} ${i.model||''}`.trim();
   }
 
+  // V1.1.8: Search labels for quick-sale filtering.
+  function saleSearchText(item){
+    return [
+      itemDisplayName(item),
+      item.name,
+      item.sku,
+      item.brand,
+      item.model,
+      item.category,
+      item.storage,
+      item.imei,
+      item.serialNumber
+    ].map(clean).filter(Boolean).join(' ').toLowerCase();
+  }
+
+  function saleOptionLabel(item){
+    if(!item)return '';
+    if(item.trackingType==='serial'){
+      return `${item.brand||''} ${item.model||''} ${item.storage||''}`.trim() || itemDisplayName(item);
+    }
+    return `${item.name||item.sku||'פריט'}${item.brand||item.model?` • ${[item.brand,item.model].map(clean).filter(Boolean).join(' ')}`:''}`;
+  }
+
+  function sameSerialModel(a,b){
+    if(!a||!b)return false;
+    return clean(a.brand).toLowerCase()===clean(b.brand).toLowerCase()
+      && clean(a.model).toLowerCase()===clean(b.model).toLowerCase()
+      && clean(a.storage).toLowerCase()===clean(b.storage).toLowerCase();
+  }
+
+  // V1.1.10: group serial devices in quick sale by model so the same model appears once.
+  function serialGroupKey(item){
+    return [
+      clean(item.brand).toLowerCase(),
+      clean(item.model).toLowerCase(),
+      clean(item.storage).toLowerCase(),
+      clean(item.color).toLowerCase()
+    ].join('|');
+  }
+
+  function serialGroupDisplay(item){
+    return `${item.brand||''} ${item.model||''} ${item.storage||''} ${item.color||''}`.trim() || itemDisplayName(item);
+  }
+
   function itemCostValue(item){
     return Number(item?.trackingType==='serial' ? (item.purchaseCost||0) : (item.unitCost||0));
   }
@@ -613,19 +779,25 @@
 
   function renderApp(){renderTabs();renderView()}
   function renderTabs(){ if(!isAdmin()&&activeTab==='workers')activeTab='dashboard'; $('tabs').innerHTML=tabs.filter(([id])=>id!=='workers'||isAdmin()).map(([id,label])=>`<button class="tab ${activeTab===id?'active':''}" data-tab="${id}">${label}</button>`).join(''); document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{activeTab=b.dataset.tab;renderApp()}) }
-  function renderView(){const map={dashboard,search,serial,quantity,imei,sale,workers,reports,backup,changelog}; $('view').innerHTML=map[activeTab](); bindView()}
+  function renderView(){const map={dashboard,search,inventory,serial,quantity,imei,sale,workers,backup,changelog}; $('view').innerHTML=map[activeTab](); bindView()}
 
   function dashboard(){const serial=items.filter(i=>i.trackingType==='serial'), quantity=items.filter(i=>i.trackingType==='quantity'), low=quantity.filter(i=>(Number(i.quantity)||0)<= (Number(i.lowStockAlert)||0)), inStock=serial.filter(i=>i.status==='in_stock'); const cost=items.reduce((s,i)=>s+(i.trackingType==='serial'?Number(i.purchaseCost||0):Number(i.unitCost||0)*Number(i.quantity||0)),0); const value=items.reduce((s,i)=>s+(i.trackingType==='serial'&&i.status==='in_stock'?Number(i.salePrice||0):i.trackingType==='quantity'?Number(i.salePrice||0)*Number(i.quantity||0):0),0);
     return `<h2 class="sectionTitle">דשבורד</h2><div class="grid"><div class="card"><h3>מכשירים במלאי</h3><div class="statNum">${inStock.length}</div><p class="muted">פריטים מנוהלים לפי IMEI / Serial</p></div><div class="card"><h3>פריטים כמותיים</h3><div class="statNum">${quantity.length}</div><p class="muted">חלקים, אביזרים ומחירון מעבדה</p></div><div class="card"><h3>מלאי נמוך</h3><div class="statNum">${low.length}</div><p class="muted">פריטים מתחת להתראה</p></div><div class="card"><h3>מכירות</h3><div class="statNum">${sales.length}</div><p class="muted">סה״כ רשומות מכירה</p></div>${can('canViewCost')?`<div class="card"><h3>עלות מלאי</h3><div class="statNum">${money(cost)}</div></div>`:''}${can('canViewProfit')?`<div class="card"><h3>שווי מכירה צפוי</h3><div class="statNum">${money(value)}</div></div>`:''}</div>`}
 
   function search(){return `<h2 class="sectionTitle">חיפוש מלאי</h2><div class="card mb12"><h3 class="mb12">סינון לפי קטגוריות</h3><p class="muted mb12">בחר סוג מלאי, מותג, דגם או קטגוריה. אפשר גם להקליד טקסט חופשי, והמערכת תסנן מתוך כל הנתונים.</p><div class="row"><div class="field"><label>סוג מלאי</label><select id="searchType"><option value="all">הכל</option><option value="serial">מלאי סידורי</option><option value="quantity">מלאי כמותי / חלקים</option></select></div><div class="field"><label>מותג</label>${suggestInput('searchBrand','brand','לדוגמה: Samsung')}</div><div class="field"><label>דגם</label>${suggestInput('searchModel','model','לדוגמה: S25')}</div><div class="field"><label>קטגוריה</label>${suggestInput('searchCategory','category','לדוגמה: מסכים / מכשירים')}</div><div class="field"><label>סטטוס</label><select id="searchStatus"><option value="all">הכל</option><option value="in_stock">במלאי</option><option value="active">פעיל</option><option value="sold">נמכר</option><option value="reserved">שמור</option><option value="repair">בתיקון</option><option value="faulty">תקול</option><option value="returned">הוחזר</option><option value="inactive">לא פעיל</option></select></div><div class="field"><label>חיפוש חופשי</label><input id="searchQ" placeholder="שם, IMEI, מק״ט, ספק, הערות..."></div></div><div class="actions"><button id="clearSearchBtn" class="btn btnSmall btnGhost">נקה חיפוש</button></div></div><div id="searchSummary" class="muted mb12"></div><div id="searchResults" class="list"></div>`}
+  function inventory(){
+    const isSerial=inventoryMode==='serial';
+    return `<h2 class="sectionTitle">מלאי</h2><div class="card mb12"><h3 class="mb12">בחר סוג מלאי</h3><div class="actions"><button class="btn btnSmall ${isSerial?'btnPrimary':'btnGhost'} inventoryModeBtn" data-mode="serial">מלאי סידורי</button><button class="btn btnSmall ${!isSerial?'btnPrimary':'btnGhost'} inventoryModeBtn" data-mode="quantity">מלאי כמותי / מחירון חלקים</button></div></div>${isSerial?serialBody():quantityBody()}`;
+  }
+  function serialBody(){return `${can('canAddStock')?serialForm():''}<div class="card mt16"><h3 class="mb12">רשימת מכשירים</h3><div class="list">${items.filter(i=>i.trackingType==='serial').map(itemCard).join('')||'<p class="muted">אין מכשירים עדיין</p>'}</div></div>`}
+  function quantityBody(){return `${can('canAddStock')?quantityForm():''}<div class="card mt16"><h3 class="mb12">רשימת חלקים ואביזרים</h3><div class="list">${items.filter(i=>i.trackingType==='quantity').map(itemCard).join('')||'<p class="muted">אין פריטים כמותיים עדיין</p>'}</div></div>`}
   function serial(){return `<h2 class="sectionTitle">מלאי סידורי</h2>${can('canAddStock')?serialForm():''}<div class="card mt16"><h3 class="mb12">רשימת מכשירים</h3><div class="list">${items.filter(i=>i.trackingType==='serial').map(itemCard).join('')||'<p class="muted">אין מכשירים עדיין</p>'}</div></div>`}
-  function serialForm(){return `<div class="card"><h3 class="mb12">הוספת מכשיר לפי IMEI / Serial</h3><p class="muted mb12">אם יש כמה יחידות מאותו דגם, הכנס כמות והמערכת תפתח שדה IMEI לכל יחידה. המערכת תחייב ספרות בלבד. אורך מומלץ: 15 ספרות, אבל ניתן לשמור גם אורך אחר עם הערה.</p>${sharedDatalists()}<div class="row"><div class="field"><label>כמות מכשירים</label><input id="sBulkQty" type="number" min="1" placeholder="חובה להזין כמות"></div><div class="field"><label>מותג</label>${suggestInput('sBrand','brand','לדוגמה: Samsung')}</div><div class="field"><label>דגם</label>${suggestInput('sModel','model','לדוגמה: S25')}</div><div class="field"><label>נפח</label><input id="sStorage"></div><div class="field"><label>צבע</label><input id="sColor"></div><div class="field"><label>מצב</label><select id="sCondition"><option>חדש</option><option>יד 2</option><option>מחודש</option><option>פתוח</option></select></div><div class="field"><label>ספק</label>${suggestInput('sSupplier','supplier')}</div><div class="field"><label>עלות ליחידה</label><input id="sCost" type="number"></div><div class="field"><label>מחיר מכירה</label><input id="sPrice" type="number"></div><div class="field"><label>מחיר מינימום</label><input id="sMin" type="number"></div><div class="field"><label>סטטוס</label><select id="sStatus"><option value="in_stock">במלאי</option><option value="reserved">שמור</option><option value="repair">בתיקון</option><option value="faulty">תקול</option></select></div></div><div id="singleSerialBox"><div class="row"><div class="field"><label>IMEI / Serial</label><input id="sImei" inputmode="numeric" pattern="[0-9]*" placeholder="ספרות בלבד"></div></div></div><div id="multiSerialBox" class="hidden"><div class="miniHint">הכנס IMEI אחד לכל מכשיר. כל IMEI חייב להיות ספרות בלבד. מומלץ 15 ספרות, אבל ניתן לשמור אורך אחר. אי אפשר לשמור מספר שכבר קיים.</div><div id="multiSerialInputs" class="serialInputsGrid"></div></div><div class="field"><label>הערות</label><textarea id="sNotes"></textarea></div><button id="addSerialBtn" class="btn btnGood">הוסף למלאי סידורי</button><div id="serialMsg" class="msg"></div></div>`}
+  function serialForm(){return `<div class="card"><h3 class="mb12">הוספת מכשיר לפי IMEI / Serial</h3><p class="muted mb12">אם יש כמה יחידות מאותו דגם, הכנס כמות והמערכת תפתח שדה IMEI לכל יחידה. המערכת תחייב ספרות בלבד. אורך מומלץ: 15 ספרות, אבל ניתן לשמור גם אורך אחר עם הערה.</p>${sharedDatalists()}<div class="row"><div class="field"><label>כמות מכשירים</label><input id="sBulkQty" type="number" min="1" placeholder="חובה להזין כמות"></div><div class="field"><label>מותג</label>${suggestInput('sBrand','brand','לדוגמה: Samsung')}</div><div class="field"><label>דגם</label>${suggestInput('sModel','model','לדוגמה: S25')}</div><div class="field"><label>נפח</label>${suggestInput('sStorage','storage','לדוגמה: 128GB')}</div><div class="field"><label>צבע</label>${suggestInput('sColor','color','לדוגמה: שחור')}</div><div class="field"><label>מצב</label><select id="sCondition"><option>חדש</option><option>יד 2</option><option>מחודש</option><option>פתוח</option></select></div><div class="field"><label>ספק</label>${suggestInput('sSupplier','supplier')}</div><div class="field"><label>עלות ליחידה</label><input id="sCost" type="number"></div><div class="field"><label>מחיר מכירה</label><input id="sPrice" type="number"></div><div class="field"><label>מחיר מינימום</label><input id="sMin" type="number"></div><div class="field"><label>סטטוס</label><select id="sStatus"><option value="in_stock">במלאי</option><option value="reserved">שמור</option><option value="repair">בתיקון</option><option value="faulty">תקול</option></select></div></div><div id="singleSerialBox"><div class="row"><div class="field"><label>IMEI / Serial</label><input id="sImei" inputmode="numeric" pattern="[0-9]*" placeholder="ספרות בלבד"></div></div></div><div id="multiSerialBox" class="hidden"><div class="miniHint">הכנס IMEI אחד לכל מכשיר. כל IMEI חייב להיות ספרות בלבד. מומלץ 15 ספרות, אבל ניתן לשמור אורך אחר. אי אפשר לשמור מספר שכבר קיים.</div><div id="multiSerialInputs" class="serialInputsGrid"></div></div><div class="field"><label>הערות</label>${suggestInput('sNotes','notes','הערה שנשמרה בעבר או ערך חדש')}</div><button id="addSerialBtn" class="btn btnGood">הוסף למלאי סידורי</button><div id="serialMsg" class="msg"></div></div>`}
   function quantity(){return `<h2 class="sectionTitle">מלאי כמותי / מחירון חלקים</h2>${can('canAddStock')?quantityForm():''}<div class="card mt16"><h3 class="mb12">רשימת חלקים ואביזרים</h3><div class="list">${items.filter(i=>i.trackingType==='quantity').map(itemCard).join('')||'<p class="muted">אין פריטים כמותיים עדיין</p>'}</div></div>`}
-  function quantityForm(){return `<div class="card"><h3 class="mb12">הוספת פריט כמותי</h3>${sharedDatalists()}<div class="row"><div class="field"><label>מק״ט</label><input id="qSku"></div><div class="field"><label>שם פריט</label><input id="qName"></div><div class="field"><label>קטגוריה</label>${suggestInput('qCat','category','מסכים / סוללות / אביזרים')}</div><div class="field"><label>מותג</label>${suggestInput('qBrand','brand')}</div><div class="field"><label>דגם מתאים</label>${suggestInput('qModel','model')}</div><div class="field"><label>כמות</label><input id="qQty" type="number"></div><div class="field"><label>התראת מלאי נמוך</label><input id="qLow" type="number" value="2"></div><div class="field"><label>ספק</label>${suggestInput('qSupplier','supplier')}</div><div class="field"><label>עלות יחידה</label><input id="qCost" type="number"></div><div class="field"><label>מחיר מכירה</label><input id="qPrice" type="number"></div></div><div class="field"><label>הערות</label><textarea id="qNotes"></textarea></div><button id="addQuantityBtn" class="btn btnGood">הוסף פריט</button><div id="quantityMsg" class="msg"></div></div>`}
-  function imei(){return `<h2 class="sectionTitle">בדיקת IMEI / Serial</h2><div class="card"><div class="field"><label>הקלד IMEI או Serial</label><input id="imeiInput" inputmode="numeric" pattern="[0-9]*" placeholder="IMEI / Serial - ספרות בלבד"></div><button id="imeiBtn" class="btn btnPrimary">בדוק</button></div><div id="imeiResult" class="mt16"></div>`}
-  function sale(){const sellable=items.filter(i=>i.status!=='inactive' && (i.trackingType==='serial'?i.status==='in_stock':(Number(i.quantity)||0)>0));return `<h2 class="sectionTitle">מכירה מהירה</h2>${can('canSell')?`<div class="card"><p class="muted mb12">אפשר למכור מכשיר סידורי לפי IMEI/Serial או פריט כמותי מהמלאי. בפריט כמותי המערכת בודקת כמות קיימת, מורידה מהמלאי ושומרת תנועת מלאי.</p><div class="row"><div class="field"><label>סוג מכירה</label><select id="saleType"><option value="all">הכל</option><option value="serial">מכשיר סידורי</option><option value="quantity">פריט כמותי / חלק / אביזר</option></select></div><div class="field"><label>בחר פריט</label><select id="saleItem">${sellable.map(i=>`<option value="${i.id}" data-type="${i.trackingType}">${i.trackingType==='serial'?`${i.brand||''} ${i.model||''} ${(i.storage||'')}`.trim()+' • '+(i.imei||i.serialNumber||'ללא סידורי'):(i.name||i.sku||'פריט')+' • במלאי: '+(Number(i.quantity)||0)} (${i.trackingType==='serial'?'סידורי':'כמותי'})</option>`).join('')}</select></div><div class="field" id="saleSerialField"><label>IMEI / Serial למכירה <span class="muted">(חובה בפריט סידורי)</span></label><input id="saleSerialConfirm" inputmode="numeric" pattern="[0-9]*" placeholder="סרוק או הקלד IMEI / Serial"></div><div class="field"><label>כמות</label><input id="saleQty" type="number" min="1" value="1"></div><div class="field"><label>מחיר מכירה בפועל</label><input id="salePrice" type="number"></div><div class="field"><label>שם לקוח</label><input id="saleCustomer"></div><div class="field"><label>טלפון לקוח</label><input id="salePhone"></div></div><div id="saleStockInfo" class="miniHint"></div><div class="field"><label>הערות</label><textarea id="saleNotes"></textarea></div><button id="saleBtn" class="btn btnGood">שמור מכירה</button><div id="saleMsg" class="msg"></div></div>`:'<div class="card"><p class="muted">אין לך הרשאה לבצע מכירה.</p></div>'}<div class="card mt16"><h3 class="mb12">מכירות אחרונות</h3><div class="list">${sales.slice(-20).reverse().map(s=>`<div class="item"><b>${s.itemName||'פריט'}</b><div class="kv"><span>סוג: <b>${s.itemTrackingType==='quantity'?'כמותי':'סידורי'}</b></span><span>כמות: <b>${s.quantity||1}</b></span><span>מחיר: <b>${money(s.salePrice)}</b></span><span>סידורי: <b>${s.saleSerial||'-'}</b></span><span>לקוח: <b>${s.customerName||'-'}</b></span></div></div>`).join('')||'<p class="muted">אין מכירות עדיין</p>'}</div></div>`}
-  function workers(){if(!isAdmin())return '<div class="card">אין הרשאה</div>';return `<h2 class="sectionTitle">עובדים והרשאות</h2><div class="card"><h3 class="mb12">הוספת עובד</h3><p class="muted mb12">יצירת עובד משתמשת בחיבור משני כדי להשאיר אותך מחובר כאדמין.</p><div class="row"><div class="field"><label>שם מלא</label><input id="wName"></div><div class="field"><label>אימייל</label><input id="wEmail" type="email"></div><div class="field"><label>סיסמה</label><input id="wPass" type="password"></div><div class="field"><label>תפקיד</label><select id="wRole"><option value="worker">עובד</option><option value="admin">אדמין</option></select></div></div><button id="addWorkerBtn" class="btn btnGood">צור עובד</button><div id="workerMsg" class="msg"></div></div><div class="card mt16"><h3 class="mb12">רשימת עובדים</h3><div class="list">${users.map(u=>`<div class="item"><div class="itemHead"><div><b>${u.fullName||'-'}</b><div class="muted">${u.email||''}</div></div><span class="status ${u.active===false?'bad':'good'}">${u.role==='admin'?'אדמין':'עובד'} • ${u.active===false?'חסום':'פעיל'}</span></div><div class="actions"><button class="btn btnSmall btnGhost toggleUser" data-id="${u.uid||u.id}" data-active="${u.active!==false}">${u.active===false?'הפעל':'חסום'}</button><button class="btn btnSmall btnGhost roleUser" data-id="${u.uid||u.id}" data-role="${u.role}">${u.role==='admin'?'הפוך לעובד':'הפוך לאדמין'}</button></div></div>`).join('')}</div></div>`}
+  function quantityForm(){return `<div class="card"><h3 class="mb12">הוספת פריט כמותי</h3>${sharedDatalists()}<div class="row"><div class="field"><label>מק״ט</label>${suggestInput('qSku','sku','מק״ט שנשמר בעבר או חדש')}</div><div class="field"><label>שם פריט</label>${suggestInput('qName','name','שם פריט שנשמר בעבר או חדש')}</div><div class="field"><label>קטגוריה</label>${suggestInput('qCat','category','מסכים / סוללות / אביזרים')}</div><div class="field"><label>מותג</label>${suggestInput('qBrand','brand')}</div><div class="field"><label>דגם מתאים</label>${suggestInput('qModel','model')}</div><div class="field"><label>כמות</label><input id="qQty" type="number"></div><div class="field"><label>התראת מלאי נמוך</label><input id="qLow" type="number" value="2"></div><div class="field"><label>ספק</label>${suggestInput('qSupplier','supplier')}</div><div class="field"><label>עלות יחידה</label><input id="qCost" type="number"></div><div class="field"><label>מחיר מכירה</label><input id="qPrice" type="number"></div></div><div class="field"><label>הערות</label>${suggestInput('qNotes','notes','הערה שנשמרה בעבר או ערך חדש')}</div><button id="addQuantityBtn" class="btn btnGood">הוסף פריט</button><div id="quantityMsg" class="msg"></div></div>`}
+  function imei(){return `<h2 class="sectionTitle">בדיקת IMEI / Serial</h2><div class="card"><div class="field"><label>הקלד IMEI או Serial</label>${suggestInput('imeiInput','serial','IMEI / Serial - ספרות בלבד')}</div><button id="imeiBtn" class="btn btnPrimary">בדוק</button></div><div id="imeiResult" class="mt16"></div>`}
+  function sale(){const sellable=items.filter(i=>i.status!=='inactive' && (i.trackingType==='serial'?i.status==='in_stock':(Number(i.quantity)||0)>0));return `<h2 class="sectionTitle">מכירה מהירה</h2>${can('canSell')?`<div class="card"><p class="muted mb12">אפשר למכור מכשיר סידורי לפי IMEI/Serial או פריט כמותי מהמלאי. בפריט כמותי המערכת בודקת כמות קיימת, מורידה מהמלאי ושומרת תנועת מלאי.</p><div class="row"><div class="field"><label>סוג מכירה</label><select id="saleType"><option value="all">הכל</option><option value="serial">מכשיר סידורי</option><option value="quantity">פריט כמותי / חלק / אביזר</option></select></div><div class="field"><label>חיפוש פריט למכירה</label><div class="suggestBox"><input id="saleItemSearch" autocomplete="off" placeholder="הקלד שם, מק״ט, מותג, דגם או סיריאל"><div class="suggestMenu saleSearchMenu" id="saleItemSearchMenu"></div></div><input id="saleItem" type="hidden"><div id="saleSelectedItemText" class="miniHint">בחר פריט מהרשימה</div></div><div class="field" id="saleSerialField"><label>IMEI / Serial למכירה <span class="muted">(חובה בפריט סידורי)</span></label><div class="suggestBox"><input id="saleSerialConfirm" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="בחר או הקלד IMEI / Serial"><div class="suggestMenu saleSearchMenu" id="saleSerialMenu"></div></div></div><div class="field"><label>כמות</label><input id="saleQty" type="number" min="1" value="1"></div><div class="field"><label>מחיר מכירה בפועל</label><input id="salePrice" type="number"></div><div class="field"><label>שם לקוח</label>${suggestInput('saleCustomer','customerName','לקוח שנשמר בעבר או חדש')}</div><div class="field"><label>טלפון לקוח</label>${suggestInput('salePhone','customerPhone','טלפון שנשמר בעבר או חדש')}</div></div><div id="saleStockInfo" class="miniHint"></div><div class="field"><label>הערות</label>${suggestInput('saleNotes','saleNotes','הערת מכירה שנשמרה בעבר או חדשה')}</div><button id="saleBtn" class="btn btnGood">שמור מכירה</button><div id="saleMsg" class="msg"></div></div>`:'<div class="card"><p class="muted">אין לך הרשאה לבצע מכירה.</p></div>'}<div class="card mt16"><h3 class="mb12">מכירות אחרונות</h3><div class="list">${sales.slice(-20).reverse().map(s=>`<div class="item"><b>${s.itemName||'פריט'}</b><div class="kv"><span>סוג: <b>${s.itemTrackingType==='quantity'?'כמותי':'סידורי'}</b></span><span>כמות: <b>${s.quantity||1}</b></span><span>מחיר: <b>${money(s.salePrice)}</b></span><span>סידורי: <b>${s.saleSerial||'-'}</b></span><span>לקוח: <b>${s.customerName||'-'}</b></span></div></div>`).join('')||'<p class="muted">אין מכירות עדיין</p>'}</div></div>`}
+  function workers(){if(!isAdmin())return '<div class="card">אין הרשאה</div>';return `<h2 class="sectionTitle">עובדים והרשאות</h2><div class="card"><h3 class="mb12">הוספת עובד</h3><p class="muted mb12">יצירת עובד משתמשת בחיבור משני כדי להשאיר אותך מחובר כאדמין.</p><div class="row"><div class="field"><label>שם מלא</label><input id="wName"></div><div class="field"><label>אימייל</label><input id="wEmail" type="email"></div><div class="field"><label>סיסמה</label><input id="wPass" type="password"></div><div class="field"><label>תפקיד</label><select id="wRole"><option value="worker">עובד</option><option value="admin">אדמין</option></select></div></div><button id="addWorkerBtn" class="btn btnGood">צור עובד</button><div id="workerMsg" class="msg"></div></div><div class="card mt16"><h3 class="mb12">רשימת עובדים</h3><div class="list">${users.map(u=>`<div class="item"><div class="itemHead"><div><b>${u.fullName||'-'}</b><div class="muted">${u.email||''}</div><div class="muted">התחברות אחרונה: ${formatIsraelDateTime(u.lastLoginAt)}</div></div><span class="status ${u.active===false?'bad':'good'}">${u.role==='admin'?'אדמין':'עובד'} • ${u.active===false?'חסום':'פעיל'}</span></div><div class="actions"><button class="btn btnSmall btnGhost toggleUser" data-id="${u.uid||u.id}" data-active="${u.active!==false}">${u.active===false?'הפעל':'חסום'}</button><button class="btn btnSmall btnGhost roleUser" data-id="${u.uid||u.id}" data-role="${u.role}">${u.role==='admin'?'הפוך לעובד':'הפוך לאדמין'}</button></div></div>`).join('')}</div></div>`}
   function reports(){return `<h2 class="sectionTitle">דוחות</h2><div class="grid"><div class="card"><h3>מכירות</h3><div class="statNum">${sales.length}</div></div><div class="card"><h3>סה״כ הכנסות</h3><div class="statNum">${money(sales.reduce((s,x)=>s+Number(x.salePrice||0),0))}</div></div><div class="card"><h3>מלאי נמוך</h3><div class="statNum">${items.filter(i=>i.trackingType==='quantity'&&(Number(i.quantity)||0)<=(Number(i.lowStockAlert)||0)).length}</div></div></div>`}
   function backup(){return `<h2 class="sectionTitle">גיבוי ושחזור</h2><div class="card"><p class="muted mb12">ייצוא ושחזור בסיסי ל־JSON.</p><div class="actions"><button id="exportBtn" class="btn btnGood">ייצוא JSON</button><label class="btn btnGhost">ייבוא JSON<input id="importFile" type="file" accept="application/json" class="hidden"></label></div><div id="backupMsg" class="msg"></div></div>`}
   function changelog(){return `<h2 class="sectionTitle">מה חדש</h2><div class="card"><h3 class="mb12">Version ${APP_VERSION}</h3><ul style="padding-right:20px;line-height:1.9;color:#cbd5e1"><li><b>V1.1.5</b> — עדכון מחיר מאפשר להשאיר את מחיר הקנייה או מחיר המכירה ריק, והמערכת תשאיר באותו שדה את המחיר הקיים במקום לחייב הזנה.</li><li><b>V1.1.4</b> — מכירה מהירה תומכת עכשיו גם בפריט כמותי כמלאי אמיתי: בחירת פריט, כמות, בדיקת כמות קיימת, הורדה מהמלאי ורישום תנועת מלאי.</li><li><b>V1.1.3</b> — עובד רגיל יכול לצפות במחיר קנייה, מחיר מכירה והיסטוריית מחירים, אך ללא אפשרות שינוי או עריכה.</li><li><b>V1.1.2</b> — חלון שינוי מחיר נפתח עכשיו עם שדות מחיר עלות חדש ומחיר מכירה חדש ריקים, כדי למנוע שמירה בטעות של המחיר הקיים.</li><li><b>V1.1.1</b> — IMEI/Serial נשאר חובה ספרות בלבד, אבל אורך 15 ספרות הוא הערה בלבד ולא חוסם שמירה.</li><li><b>V1.1.0</b> — שינוי מחיר שודרג לעדכון כפול: מחיר עלות ומחיר מכירה, עם היסטוריית לפני/אחרי לכל אחד מהם.</li><li><b>V1.0.10</b> — נוספו סימון פריט כפעיל/לא פעיל, שינוי מחיר עם היסטוריית מחירים לכל מוצר, והוחלפה הודעת המחיקה במודאל יפה עם כן/לא.</li><li><b>V1.0.9</b> — הוסתרו זמנית כפתורי מה חדש ולוג שגיאות מהמסך, והחיפוש שודרג לסינון לפי סוג מלאי, מותג, דגם, קטגוריה, סטטוס וטקסט חופשי עם הצעות חכמות.</li><li><b>V1.0.8</b> — נוסף כפתור שכחתי סיסמה במסך הכניסה, עם שליחת מייל איפוס סיסמה דרך Firebase Authentication.</li><li><b>V1.0.7</b> — מסך איפוס הוקטן ופושט: 10 לחיצות על הגרסה, סיסמה, אישור כן/לא ואיפוס.</li><li><b>V1.0.6</b> — נוסף איפוס מערכת מוסתר דרך 10 לחיצות על מספר הגרסה, עם בדיקת סיסמה לפי Hash בלבד ואישור מחיקה מפורש.</li><li>האיפוס מוחק את כל אוספי Firestore של המערכת ומנסה למחוק גם את משתמש האדמין המחובר מ־Firebase Authentication.</li><li><b>V1.0.5</b> — שדה כמות סידורית מתחיל ריק, חובה להזין מספר תקין, ושדה IMEI מוצג רק אחרי כמות תקינה.</li><li>רשימות מותג/דגם/קטגוריה/ספק כבר לא נפתחות בפוקוס ריק; הן נפתחות רק אחרי הקלדה ומציגות תוצאות מסוננות בלבד.</li><li><b>V1.0.4</b> — נוספה בדיקת IMEI ראשונית: ספרות בלבד ובדיקת אורך.</li><li>נוספו רשימות חכמות למותג, דגם, קטגוריה וספק מתוך מה שכבר נשמר במלאי. ערך חדש שתקליד יופיע בפעמים הבאות.</li><li><b>V1.0.3</b> — הוספת כמה מכשירים סידוריים מאותו דגם בפעם אחת, עם שדה IMEI/Serial נפרד לכל יחידה.</li><li>כאשר הכמות היא 1 מוצג שדה סידורי יחיד; כאשר הכמות גדולה מ־1 מוצגים בדיוק מספר השדות לפי הכמות.</li><li>נוספה בדיקת כפילות: אי אפשר לשמור IMEI/Serial שכבר קיים במלאי או שחוזר על עצמו באותה הכנסת מלאי.</li><li><b>V1.0.2</b> — טקסט כניסה ראשון מקצועי יותר וכפתור מה חדש מהיר בתחתית.</li><li><b>V1.0.1</b> — כפתור העתקת לוג שגיאות, אימות IMEI/Serial במכירה סידורית, ויצירת עובד בלי להעביר אותך מחשבון האדמין.</li><li><b>V1.0.0</b> — בנייה נקייה: Auth, אדמין ראשון, מלאי סידורי, מלאי כמותי, חיפוש, מכירה, עובדים, דוחות וגיבוי.</li></ul></div>`}
@@ -665,6 +837,7 @@
     const hasAnyFilter=type!=='all'||status!=='all'||brand||model||category||q;
     if($('searchSummary'))$('searchSummary').textContent=hasAnyFilter?`נמצאו ${res.length} תוצאות`:`מוצגים כל פריטי המלאי (${res.length})`;
     $('searchResults').innerHTML=res.map(itemCard).join('')||'<div class="card"><p class="muted">אין תוצאות</p></div>';
+    document.querySelectorAll('.inventoryModeBtn').forEach(b=>b.onclick=()=>{inventoryMode=b.dataset.mode;renderApp();});
     bindItemActions();
   }
   function bindView(){
@@ -674,7 +847,7 @@
     if($('addSerialBtn')) $('addSerialBtn').onclick=addSerial;
     if($('addQuantityBtn')) $('addQuantityBtn').onclick=addQuantity;
     if($('imeiBtn')) $('imeiBtn').onclick=checkImei;
-    if($('saleItem')) {const updateSaleUi=()=>{const i=items.find(x=>x.id===$('saleItem').value); $('salePrice').value=i?.salePrice||''; if($('saleQty')){$('saleQty').value=i?.trackingType==='serial'?1:($('saleQty').value||1); $('saleQty').disabled=i?.trackingType==='serial'; $('saleQty').max=i?.trackingType==='quantity'?(Number(i.quantity)||0):1;} if($('saleSerialField')) $('saleSerialField').style.display=i?.trackingType==='serial'?'block':'none'; if($('saleSerialConfirm')) $('saleSerialConfirm').value=''; if($('saleStockInfo')) $('saleStockInfo').textContent=i?.trackingType==='quantity'?`כמות זמינה במלאי: ${Number(i.quantity)||0}`:(i?`מכשיר סידורי — חובה לאמת IMEI/Serial: ${i.imei||i.serialNumber||'-'}`:'');}; const applySaleType=()=>{const t=$('saleType')?.value||'all'; [...$('saleItem').options].forEach(o=>o.hidden=(t!=='all'&&o.dataset.type!==t)); const first=[...$('saleItem').options].find(o=>!o.hidden); if(first)$('saleItem').value=first.value; updateSaleUi();}; $('saleItem').onchange=updateSaleUi; if($('saleType'))$('saleType').onchange=applySaleType; applySaleType();}
+    if($('saleItemSearch')) bindQuickSalePicker();
     if($('saleBtn')) $('saleBtn').onclick=makeSale;
     if($('addWorkerBtn')) $('addWorkerBtn').onclick=addWorker;
     if($('exportBtn')) $('exportBtn').onclick=exportJson;
@@ -715,6 +888,135 @@
       };
     });
   }
+  // V1.1.8: Quick-sale searchable item picker + serial autocomplete list.
+  function bindQuickSalePicker(){
+    const itemInput=$('saleItemSearch');
+    const itemMenu=$('saleItemSearchMenu');
+    const itemIdInput=$('saleItem');
+    const serialInput=$('saleSerialConfirm');
+    const serialMenu=$('saleSerialMenu');
+
+    const rawSellable=items.filter(i=>i.status!=='inactive' && (i.trackingType==='serial'?i.status==='in_stock':(Number(i.quantity)||0)>0));
+    const serialGroups=new Map();
+    rawSellable.filter(i=>i.trackingType==='serial').forEach(i=>{
+      const key=serialGroupKey(i);
+      if(!serialGroups.has(key)){
+        serialGroups.set(key,{...i,id:'group:'+key,isSerialGroup:true,groupKey:key,serialCount:0});
+      }
+      serialGroups.get(key).serialCount++;
+    });
+    const saleChoices=[...serialGroups.values(),...rawSellable.filter(i=>i.trackingType==='quantity')];
+    const closeItemMenu=()=>{if(itemMenu){itemMenu.style.display='none';itemMenu.innerHTML='';}};
+    const closeSerialMenu=()=>{if(serialMenu){serialMenu.style.display='none';serialMenu.innerHTML='';}};
+
+    const setSelectedItem=(item)=>{
+      if(!item)return;
+      itemIdInput.value=item.id;
+      itemInput.value=item.isSerialGroup?serialGroupDisplay(item):saleOptionLabel(item);
+      if($('saleSelectedItemText')) $('saleSelectedItemText').textContent=`נבחר: ${item.isSerialGroup?serialGroupDisplay(item):saleOptionLabel(item)}${item.trackingType==='serial'?` • ${Number(item.serialCount||1)} סיריאלים זמינים`:' • במלאי: '+(Number(item.quantity)||0)}`;
+      updateSaleUi();
+      if(item.trackingType==='serial'){
+        setTimeout(()=>renderSerialMenu(),30);
+      }
+      closeItemMenu();
+    };
+
+    const currentItem=()=>saleChoices.find(x=>x.id===itemIdInput.value) || items.find(x=>x.id===itemIdInput.value);
+
+    const matchingItems=()=>{
+      const type=$('saleType')?.value||'all';
+      const q=clean(itemInput.value).toLowerCase();
+      return saleChoices
+        .filter(i=>type==='all'||i.trackingType===type)
+        .filter(i=>!q||saleSearchText(i).includes(q)||serialGroupDisplay(i).toLowerCase().includes(q))
+        .slice(0,40);
+    };
+
+    const renderItemMenu=()=>{
+      const matches=matchingItems();
+      if(!matches.length){closeItemMenu();return;}
+      itemMenu.innerHTML=matches.map((i,idx)=>`<button type="button" data-pick-index="${idx}"><b>${escapeHtml(i.isSerialGroup?serialGroupDisplay(i):saleOptionLabel(i))}</b><span class="mutedLine">${i.trackingType==='serial'?`סידורי • ${Number(i.serialCount||1)} סיריאלים זמינים`:`כמותי • במלאי: ${Number(i.quantity)||0} • מק״ט: ${escapeHtml(i.sku||'-')}`}</span></button>`).join('');
+      itemMenu.style.display='block';
+      itemMenu.querySelectorAll('button').forEach(b=>b.onclick=()=>setSelectedItem(matches[Number(b.dataset.pickIndex)]));
+    };
+
+    const serialCandidates=()=>{
+      const item=currentItem();
+      if(!item || item.trackingType!=='serial')return [];
+      const q=clean(serialInput?.value||'').toLowerCase();
+      return items
+        .filter(i=>i.trackingType==='serial'&&i.status==='in_stock'&&(item.isSerialGroup?serialGroupKey(i)===item.groupKey:sameSerialModel(i,item)))
+        .filter(i=>{
+          const serial=clean(i.imei||i.serialNumber).toLowerCase();
+          return !q||serial.includes(q);
+        })
+        .slice(0,40);
+    };
+
+    const selectSerialItem=(item)=>{
+      if(!item)return;
+      const selectedGroup=currentItem();
+      itemIdInput.value=selectedGroup?.isSerialGroup?selectedGroup.id:item.id;
+      itemInput.value=selectedGroup?.isSerialGroup?serialGroupDisplay(selectedGroup):saleOptionLabel(item);
+      serialInput.value=item.imei||item.serialNumber||'';
+      if($('saleSelectedItemText')) $('saleSelectedItemText').textContent=`נבחר: ${(selectedGroup?.isSerialGroup?serialGroupDisplay(selectedGroup):saleOptionLabel(item))} • ${serialInput.value}`;
+      updateSaleUi(false);
+      closeSerialMenu();
+    };
+
+    const renderSerialMenu=()=>{
+      if(!serialMenu||!serialInput)return;
+      const item=currentItem();
+      if(!item || item.trackingType!=='serial'){closeSerialMenu();return;}
+      const matches=serialCandidates();
+      if(!matches.length){closeSerialMenu();return;}
+      serialMenu.innerHTML=matches.map((i,idx)=>`<button type="button" data-pick-index="${idx}"><b>${escapeHtml(i.imei||i.serialNumber||'-')}</b><span class="mutedLine">${escapeHtml(saleOptionLabel(i))}</span></button>`).join('');
+      serialMenu.style.display='block';
+      serialMenu.querySelectorAll('button').forEach(b=>b.onclick=()=>selectSerialItem(matches[Number(b.dataset.pickIndex)]));
+    };
+
+    const updateSaleUi=(clearSerial=true)=>{
+      const i=currentItem();
+      if($('salePrice')) $('salePrice').value=i?.salePrice||'';
+      if($('saleQty')){
+        $('saleQty').value=i?.trackingType==='serial'?1:($('saleQty').value||1);
+        $('saleQty').disabled=i?.trackingType==='serial';
+        $('saleQty').max=i?.trackingType==='quantity'?(Number(i.quantity)||0):1;
+      }
+      if($('saleSerialField')) $('saleSerialField').style.display=i?.trackingType==='serial'?'block':'none';
+      if(clearSerial && serialInput) serialInput.value='';
+      if($('saleStockInfo')) $('saleStockInfo').textContent=i?.trackingType==='quantity'
+        ? `כמות זמינה במלאי: ${Number(i.quantity)||0}`
+        : (i?`מכשיר סידורי — בחר IMEI/Serial מהרשימה או הקלד לסינון`:'בחר פריט למכירה מהרשימה');
+      if(i?.trackingType==='serial') renderSerialMenu(); else closeSerialMenu();
+    };
+
+    const applySaleType=()=>{
+      itemIdInput.value='';
+      itemInput.value='';
+      if(serialInput) serialInput.value='';
+      if($('saleSelectedItemText')) $('saleSelectedItemText').textContent='בחר פריט מהרשימה';
+      updateSaleUi();
+      renderItemMenu();
+    };
+
+    itemInput.onfocus=renderItemMenu;
+    itemInput.oninput=()=>{itemIdInput.value=''; if($('saleSelectedItemText')) $('saleSelectedItemText').textContent='בחר פריט מהרשימה'; renderItemMenu();};
+    itemInput.onblur=()=>setTimeout(closeItemMenu,180);
+
+    if(serialInput){
+      serialInput.onfocus=renderSerialMenu;
+      serialInput.oninput=()=>renderSerialMenu();
+      serialInput.onblur=()=>setTimeout(closeSerialMenu,180);
+    }
+
+    if($('saleType')) $('saleType').onchange=applySaleType;
+
+    const first=matchingItems()[0];
+    if(first) setSelectedItem(first);
+    else updateSaleUi();
+  }
+
   function renderSerialInputMode(){
     const raw=clean($('sBulkQty')?.value||'');
     const single=$('singleSerialBox'), multi=$('multiSerialBox'), holder=$('multiSerialInputs');
@@ -812,7 +1114,7 @@
   }catch(e){err(e,'add serial failed');msg($('serialMsg'),'שמירה נכשלה')}}
   async function addQuantity(){try{const rawQty=clean($('qQty').value); if(!rawQty||!Number.isFinite(Number(rawQty))||Number(rawQty)<0)return msg($('quantityMsg'),'חובה להזין כמות מספרית תקינה'); const data={trackingType:'quantity',sku:clean($('qSku').value),name:clean($('qName').value),category:clean($('qCat').value),brand:clean($('qBrand').value),model:clean($('qModel').value),quantity:Number($('qQty').value||0),lowStockAlert:Number($('qLow').value||0),supplier:clean($('qSupplier').value),unitCost:Number($('qCost').value||0),salePrice:Number($('qPrice').value||0),status:'active',notes:clean($('qNotes').value),createdBy:currentUser.uid,createdAt:serverTimestamp(),updatedAt:serverTimestamp()}; if(!data.name&&!data.sku)return msg($('quantityMsg'),'חובה שם פריט או מק״ט'); await addDoc(collection(db,'items'),data);await activity('ADD_QUANTITY_ITEM',data);msg($('quantityMsg'),'הפריט נוסף בהצלחה','ok');await loadData();renderApp()}catch(e){err(e,'add quantity failed');msg($('quantityMsg'),'שמירה נכשלה')}}
   function checkImei(){const q=clean($('imeiInput').value).toLowerCase();const found=items.find(i=>i.trackingType==='serial'&&[(i.imei||''),(i.serialNumber||'')].some(v=>String(v).toLowerCase()===q));$('imeiResult').innerHTML=found?itemCard(found):'<div class="card"><p class="muted">המכשיר לא נמצא במלאי.</p></div>';bindDelete()}
-  async function makeSale(){try{const item=items.find(i=>i.id===$('saleItem').value); if(!item)return msg($('saleMsg'),'לא נבחר פריט'); let qty=Number($('saleQty').value||1), price=Number($('salePrice').value||item.salePrice||0); const saleSerial=clean($('saleSerialConfirm')?.value||''); if(!Number.isFinite(qty)||qty<1)return msg($('saleMsg'),'חובה להזין כמות מספרית תקינה'); if(!Number.isFinite(price)||price<0)return msg($('saleMsg'),'חובה להזין מחיר מכירה תקין'); if(item.trackingType==='serial'){qty=1; const validSerials=[item.imei,item.serialNumber].filter(Boolean).map(v=>String(v).trim().toLowerCase()); if(!saleSerial)return msg($('saleMsg'),'במכירת פריט סידורי חובה להכניס IMEI או Serial'); const saleSerialError=serialDigitsError(saleSerial,'IMEI / Serial למכירה'); if(saleSerialError)return msg($('saleMsg'),saleSerialError); if(!validSerials.includes(saleSerial.toLowerCase()))return msg($('saleMsg'),'ה־IMEI / Serial שהוכנס לא תואם לפריט שנבחר');} if(item.trackingType==='quantity'&&qty>Number(item.quantity||0))return msg($('saleMsg'),`אין מספיק כמות במלאי. קיים: ${Number(item.quantity||0)}`); const oldQty=Number(item.quantity||0); const newQty=item.trackingType==='quantity'?oldQty-qty:oldQty; const sale={itemId:item.id,itemName:item.name||item.model||item.sku,itemTrackingType:item.trackingType,saleSerial:item.trackingType==='serial'?saleSerial:'',imei:item.trackingType==='serial'?(item.imei||''):'',serialNumber:item.trackingType==='serial'?(item.serialNumber||''):'',quantity:qty,salePrice:price,unitCost:item.trackingType==='serial'?Number(item.purchaseCost||0):Number(item.unitCost||0),profit:price-((item.trackingType==='serial'?Number(item.purchaseCost||0):Number(item.unitCost||0))*qty),customerName:clean($('saleCustomer').value),customerPhone:clean($('salePhone').value),notes:clean($('saleNotes').value),soldBy:currentUser.uid,soldByName:currentProfile.fullName,createdAt:serverTimestamp()}; const saleRef=await addDoc(collection(db,'sales'),sale); if(item.trackingType==='serial') await updateDoc(doc(db,'items',item.id),{status:'sold',soldAt:serverTimestamp(),soldSerial:saleSerial,updatedAt:serverTimestamp()}); else {await updateDoc(doc(db,'items',item.id),{quantity:newQty,updatedAt:serverTimestamp()}); await addDoc(collection(db,'stockMovements'),{type:'sale',itemId:item.id,itemName:item.name||item.sku||'פריט',saleId:saleRef.id,quantityChange:-qty,quantityBefore:oldQty,quantityAfter:newQty,unitCost:Number(item.unitCost||0),salePrice:price,createdBy:currentUser.uid,createdByName:currentProfile.fullName,createdAt:serverTimestamp(),notes:clean($('saleNotes').value)});} await activity('SALE_CREATED',sale); const saleWarn=item.trackingType==='serial'?serialLengthWarning(saleSerial,'IMEI / Serial למכירה'):''; msg($('saleMsg'),'המכירה נשמרה בהצלחה'+(saleWarn?' — שים לב: '+saleWarn:''),'ok');await loadData();renderApp()}catch(e){err(e,'sale failed');msg($('saleMsg'),'שמירת מכירה נכשלה')}}
+  async function makeSale(){try{let selectedSaleId=$('saleItem').value; let selectedSerialGroupKey=selectedSaleId.startsWith('group:')?selectedSaleId.replace('group:',''):''; let item=selectedSerialGroupKey?items.find(i=>i.trackingType==='serial'&&i.status==='in_stock'&&serialGroupKey(i)===selectedSerialGroupKey):items.find(i=>i.id===selectedSaleId); if(!item)return msg($('saleMsg'),'חובה לבחור פריט מהרשימה לפני שמירה'); let qty=Number($('saleQty').value||1), price=Number($('salePrice').value||item.salePrice||0); const saleSerial=clean($('saleSerialConfirm')?.value||''); if(!Number.isFinite(qty)||qty<1)return msg($('saleMsg'),'חובה להזין כמות מספרית תקינה'); if(!Number.isFinite(price)||price<0)return msg($('saleMsg'),'חובה להזין מחיר מכירה תקין'); if(item.trackingType==='serial'){qty=1; if(!saleSerial)return msg($('saleMsg'),'במכירת פריט סידורי חובה לבחור או להכניס IMEI / Serial'); const saleSerialError=serialDigitsError(saleSerial,'IMEI / Serial למכירה'); if(saleSerialError)return msg($('saleMsg'),saleSerialError); const matchingSerialItem=items.find(i=>i.trackingType==='serial'&&i.status==='in_stock'&&(selectedSerialGroupKey?serialGroupKey(i)===selectedSerialGroupKey:sameSerialModel(i,item))&&[i.imei,i.serialNumber].filter(Boolean).map(v=>String(v).trim().toLowerCase()).includes(saleSerial.toLowerCase())); if(!matchingSerialItem)return msg($('saleMsg'),'ה־IMEI / Serial שהוכנס לא נמצא ברשימת הסיריאלים הזמינים של המכשיר שנבחר'); item=matchingSerialItem;} if(item.trackingType==='quantity'&&qty>Number(item.quantity||0))return msg($('saleMsg'),`אין מספיק כמות במלאי. קיים: ${Number(item.quantity||0)}`); const oldQty=Number(item.quantity||0); const newQty=item.trackingType==='quantity'?oldQty-qty:oldQty; const sale={itemId:item.id,itemName:item.name||item.model||item.sku,itemTrackingType:item.trackingType,saleSerial:item.trackingType==='serial'?saleSerial:'',imei:item.trackingType==='serial'?(item.imei||''):'',serialNumber:item.trackingType==='serial'?(item.serialNumber||''):'',quantity:qty,salePrice:price,unitCost:item.trackingType==='serial'?Number(item.purchaseCost||0):Number(item.unitCost||0),profit:price-((item.trackingType==='serial'?Number(item.purchaseCost||0):Number(item.unitCost||0))*qty),customerName:clean($('saleCustomer').value),customerPhone:clean($('salePhone').value),notes:clean($('saleNotes').value),soldBy:currentUser.uid,soldByName:currentProfile.fullName,createdAt:serverTimestamp()}; const saleRef=await addDoc(collection(db,'sales'),sale); if(item.trackingType==='serial') await updateDoc(doc(db,'items',item.id),{status:'sold',soldAt:serverTimestamp(),soldSerial:saleSerial,updatedAt:serverTimestamp()}); else {await updateDoc(doc(db,'items',item.id),{quantity:newQty,updatedAt:serverTimestamp()}); await addDoc(collection(db,'stockMovements'),{type:'sale',itemId:item.id,itemName:item.name||item.sku||'פריט',saleId:saleRef.id,quantityChange:-qty,quantityBefore:oldQty,quantityAfter:newQty,unitCost:Number(item.unitCost||0),salePrice:price,createdBy:currentUser.uid,createdByName:currentProfile.fullName,createdAt:serverTimestamp(),notes:clean($('saleNotes').value)});} await activity('SALE_CREATED',sale); const saleWarn=item.trackingType==='serial'?serialLengthWarning(saleSerial,'IMEI / Serial למכירה'):''; msg($('saleMsg'),'המכירה נשמרה בהצלחה'+(saleWarn?' — שים לב: '+saleWarn:''),'ok');await loadData();renderApp()}catch(e){err(e,'sale failed');msg($('saleMsg'),'שמירת מכירה נכשלה')}}
   async function addWorker(){try{const fullName=clean($('wName').value),email=clean($('wEmail').value),pass=clean($('wPass').value),role=$('wRole').value;if(!fullName||!email||!pass)return msg($('workerMsg'),'יש למלא שם, אימייל וסיסמה'); const cred=await createUserWithEmailAndPassword(workerCreatorAuth,email,pass); await signOut(workerCreatorAuth); const permissions={canViewCost:role==='admin',canViewProfit:role==='admin',canSell:true,canAddStock:role==='admin',canEditStock:role==='admin',canDeleteStock:role==='admin',canManageWorkers:role==='admin',canViewReports:role==='admin',canExportData:role==='admin'};await setDoc(doc(db,'users',cred.user.uid),{uid:cred.user.uid,fullName,email,role,active:true,permissions,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});msg($('workerMsg'),'העובד נוצר בהצלחה. נשארת מחובר כאדמין.','ok');log('INFO','Worker created with secondary auth; admin session preserved',{email});}catch(e){err(e,'add worker failed');msg($('workerMsg'),'יצירת עובד נכשלה: '+(e.code||e.message))}}
   async function toggleUser(id,active){try{await updateDoc(doc(db,'users',id),{active:!active,updatedAt:serverTimestamp()});await loadData();renderApp()}catch(e){err(e,'toggle user failed')}}
   async function roleUser(id,role){try{const newRole=role==='admin'?'worker':'admin';const adminPerm=newRole==='admin';await updateDoc(doc(db,'users',id),{role:newRole,permissions:{canViewCost:adminPerm,canViewProfit:adminPerm,canSell:true,canAddStock:adminPerm,canEditStock:adminPerm,canDeleteStock:adminPerm,canManageWorkers:adminPerm,canViewReports:adminPerm,canExportData:adminPerm},updatedAt:serverTimestamp()});await loadData();renderApp()}catch(e){err(e,'role user failed')}}
