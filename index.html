@@ -305,7 +305,7 @@
 
 <script type="module">
   const APP_NAME='CellStock Manager';
-  const APP_VERSION='1.2.9';
+  const APP_VERSION='1.3.0';
   document.querySelectorAll('[data-version]').forEach(el=>el.textContent=APP_VERSION);
 
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
@@ -1327,8 +1327,85 @@
   function checkImei(){const q=clean($('imeiInput').value).toLowerCase();const found=items.find(i=>i.trackingType==='serial'&&[(i.imei||''),(i.serialNumber||'')].some(v=>String(v).toLowerCase()===q));$('imeiResult').innerHTML=found?itemCard(found):'<div class="card"><p class="muted">המכשיר לא נמצא במלאי.</p></div>';bindDelete()}
   async function makeSale(){try{let selectedSaleId=$('saleItem').value; let selectedSerialGroupKey=selectedSaleId.startsWith('group:')?selectedSaleId.replace('group:',''):''; let item=selectedSerialGroupKey?items.find(i=>i.trackingType==='serial'&&i.status==='in_stock'&&serialGroupKey(i)===selectedSerialGroupKey):items.find(i=>i.id===selectedSaleId); if(!item)return msg($('saleMsg'),'חובה לבחור פריט מהרשימה לפני שמירה'); let qty=Number($('saleQty').value||1), price=Number($('salePrice').value||item.salePrice||0); const saleSerial=clean($('saleSerialConfirm')?.value||''); if(!Number.isFinite(qty)||qty<1)return msg($('saleMsg'),'חובה להזין כמות מספרית תקינה'); if(!Number.isFinite(price)||price<0)return msg($('saleMsg'),'חובה להזין מחיר מכירה תקין'); if(item.trackingType==='serial'){qty=1; if(!saleSerial)return msg($('saleMsg'),'במכירת פריט סידורי חובה לבחור או להכניס IMEI / Serial'); const saleSerialError=serialDigitsError(saleSerial,'IMEI / Serial למכירה'); if(saleSerialError)return msg($('saleMsg'),saleSerialError); const matchingSerialItem=items.find(i=>i.trackingType==='serial'&&i.status==='in_stock'&&(selectedSerialGroupKey?serialGroupKey(i)===selectedSerialGroupKey:sameSerialModel(i,item))&&[i.imei,i.serialNumber].filter(Boolean).map(v=>String(v).trim().toLowerCase()).includes(saleSerial.toLowerCase())); if(!matchingSerialItem)return msg($('saleMsg'),'ה־IMEI / Serial שהוכנס לא נמצא ברשימת הסיריאלים הזמינים של המכשיר שנבחר'); item=matchingSerialItem;} if(item.trackingType==='quantity'&&qty>Number(item.quantity||0))return msg($('saleMsg'),`אין מספיק כמות במלאי. קיים: ${Number(item.quantity||0)}`); const oldQty=Number(item.quantity||0); const newQty=item.trackingType==='quantity'?oldQty-qty:oldQty; const sale={itemId:item.id,itemName:item.name||item.model||item.sku,itemTrackingType:item.trackingType,saleSerial:item.trackingType==='serial'?saleSerial:'',imei:item.trackingType==='serial'?(item.imei||''):'',serialNumber:item.trackingType==='serial'?(item.serialNumber||''):'',quantity:qty,salePrice:price,unitCost:item.trackingType==='serial'?Number(item.purchaseCost||0):Number(item.unitCost||0),profit:price-((item.trackingType==='serial'?Number(item.purchaseCost||0):Number(item.unitCost||0))*qty),customerName:clean($('saleCustomer').value),customerPhone:clean($('salePhone').value),notes:clean($('saleNotes').value),soldBy:currentUser.uid,soldByName:currentProfile.fullName,createdAt:serverTimestamp()}; const saleRef=await addDoc(collection(db,'sales'),sale); if(item.trackingType==='serial') await updateDoc(doc(db,'items',item.id),{status:'sold',soldAt:serverTimestamp(),soldSerial:saleSerial,updatedAt:serverTimestamp()}); else {await updateDoc(doc(db,'items',item.id),{quantity:newQty,updatedAt:serverTimestamp()}); await addDoc(collection(db,'stockMovements'),{type:'sale',itemId:item.id,itemName:item.name||item.sku||'פריט',saleId:saleRef.id,quantityChange:-qty,quantityBefore:oldQty,quantityAfter:newQty,unitCost:Number(item.unitCost||0),salePrice:price,createdBy:currentUser.uid,createdByName:currentProfile.fullName,createdAt:serverTimestamp(),notes:clean($('saleNotes').value)});} await activity('SALE_CREATED',sale); const saleWarn=item.trackingType==='serial'?serialLengthWarning(saleSerial,'IMEI / Serial למכירה'):''; msg($('saleMsg'),'המכירה נשמרה בהצלחה'+(saleWarn?' — שים לב: '+saleWarn:''),'ok');await loadData();renderApp()}catch(e){err(e,'sale failed');msg($('saleMsg'),'שמירת מכירה נכשלה')}}
   async function addWorker(){try{const fullName=clean($('wName').value),email=clean($('wEmail').value),pass=clean($('wPass').value),role=$('wRole').value;if(!fullName||!email||!pass)return msg($('workerMsg'),'יש למלא שם, אימייל וסיסמה'); const cred=await createUserWithEmailAndPassword(workerCreatorAuth,email,pass); await signOut(workerCreatorAuth); const permissions={canViewCost:role==='admin',canViewProfit:role==='admin',canSell:true,canAddStock:role==='admin',canEditStock:role==='admin',canDeleteStock:role==='admin',canManageWorkers:role==='admin',canViewReports:role==='admin',canExportData:role==='admin'};await setDoc(doc(db,'users',cred.user.uid),{uid:cred.user.uid,fullName,email,role,active:true,permissions,createdAt:serverTimestamp(),updatedAt:serverTimestamp()});msg($('workerMsg'),'העובד נוצר בהצלחה. נשארת מחובר כאדמין.','ok');log('INFO','Worker created with secondary auth; admin session preserved',{email});}catch(e){err(e,'add worker failed');msg($('workerMsg'),'יצירת עובד נכשלה: '+(e.code||e.message))}}
-  async function toggleUser(id,active){try{await updateDoc(doc(db,'users',id),{active:!active,updatedAt:serverTimestamp()});await loadData();renderApp()}catch(e){err(e,'toggle user failed')}}
-  async function roleUser(id,role){try{const newRole=role==='admin'?'worker':'admin';const adminPerm=newRole==='admin';await updateDoc(doc(db,'users',id),{role:newRole,permissions:{canViewCost:adminPerm,canViewProfit:adminPerm,canSell:true,canAddStock:adminPerm,canEditStock:adminPerm,canDeleteStock:adminPerm,canManageWorkers:adminPerm,canViewReports:adminPerm,canExportData:adminPerm},updatedAt:serverTimestamp()});await loadData();renderApp()}catch(e){err(e,'role user failed')}}
+  async function toggleUser(id,active){
+    try{
+      const target=users.find(u=>u.id===id);
+      if(!target)return;
+
+      const nextActive=!active;
+
+      // V1.3.0: prevent blocking the currently logged-in user.
+      if(currentUser && currentUser.uid===id && !nextActive){
+        alert('לא ניתן לחסום את המשתמש המחובר כרגע');
+        return;
+      }
+
+      // V1.3.0: always keep at least one active admin.
+      if(target.role==='admin' && !nextActive){
+        const activeAdmins=users.filter(u=>u.role==='admin' && u.active!==false);
+        if(activeAdmins.length<=1){
+          alert('חייב להישאר לפחות אדמין אחד פעיל במערכת');
+          return;
+        }
+      }
+
+      await updateDoc(doc(db,'users',id),{
+        active:nextActive,
+        updatedAt:serverTimestamp()
+      });
+
+      await loadData();
+      renderApp();
+    }catch(e){
+      err(e,'toggle user failed');
+    }
+  }
+  async function roleUser(id,role){
+    try{
+      const target=users.find(u=>u.id===id);
+      if(!target)return;
+
+      const newRole=role==='admin'?'worker':'admin';
+
+      // V1.3.0: keep at least one active admin.
+      if(target.role==='admin' && newRole!=='admin'){
+        const activeAdmins=users.filter(u=>u.role==='admin' && u.active!==false);
+
+        if(activeAdmins.length<=1){
+          alert('חייב להישאר לפחות אדמין אחד פעיל במערכת');
+          return;
+        }
+
+        if(currentUser && currentUser.uid===id){
+          alert('לא ניתן להסיר הרשאת אדמין מהמשתמש המחובר כרגע');
+          return;
+        }
+      }
+
+      const adminPerm=newRole==='admin';
+
+      await updateDoc(doc(db,'users',id),{
+        role:newRole,
+        permissions:{
+          canViewCost:adminPerm,
+          canViewProfit:adminPerm,
+          canSell:true,
+          canAddStock:adminPerm,
+          canEditStock:adminPerm,
+          canDeleteStock:adminPerm,
+          canManageWorkers:adminPerm,
+          canViewReports:adminPerm,
+          canExportData:adminPerm
+        },
+        updatedAt:serverTimestamp()
+      });
+
+      await loadData();
+      renderApp();
+    }catch(e){
+      err(e,'role user failed');
+    }
+  }
   function exportJson(){const data={app:APP_NAME,version:APP_VERSION,exportedAt:new Date().toISOString(),items,users,sales};const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`cellstock_backup_${APP_VERSION}.json`;a.click();URL.revokeObjectURL(a.href)}
   async function importJson(ev){try{const file=ev.target.files[0];if(!file)return;const txt=await file.text();const data=JSON.parse(txt);if(!confirm('לייבא נתונים? פעולה זו מוסיפה מסמכים ולא מוחקת קיימים.'))return;for(const i of data.items||[]){const copy={...i};delete copy.id;await addDoc(collection(db,'items'),copy)}msg($('backupMsg'),'ייבוא בסיסי הסתיים','ok');await loadData();renderApp()}catch(e){err(e,'import failed');msg($('backupMsg'),'ייבוא נכשל')}}
 
